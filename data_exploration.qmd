@@ -1,0 +1,222 @@
+---
+title: "Untitled"
+format: html
+editor: Source
+---
+
+
+# Individual data exploration
+
+
+##  Age
+
+Children age 6–13 for primary school  and children age 14–17
+for secondary school
+
+```{r}
+
+sum(is.na(hh$age_y))
+hist(hh$age_y)
+sum(hh$age_y>200)
+hh$age_y[hh$age_y>200] # Sounds like NA (98	Age not known; 99	Age not stated)
+hh$age_y[hh$age_y>200] <- NA
+hh$age_m[is.na(hh$age_y)]
+sum(is.na(hh$age_m))
+
+# Creating a dummy for age groups
+
+hh <- hh %>% 
+  mutate(age_group = case_when(
+    age_y<=2 ~ "infant", 
+    age_y >2  & age_y < 6 ~ "preschool" ,
+    age_y >=6 & age_y <= 13 ~ "primary school", 
+    age_y>=14 & age_y <=17 ~ "secondary school", 
+    age_y >17 & age_y <= 49 ~ "adult", 
+    age_y>49 ~ "eldery", 
+    TRUE ~ NA ), 
+    across(sex, as.factor))
+
+hh %>% 
+  ggplot(aes(reorder(age_group, age_y), age_y, fill = sex)) +geom_boxplot()
+
+```
+
+
+
+Number of children in school age?
+
+```{r}
+
+length(unique(hh$hhid_unique))
+length(unique(hh$clid))
+
+# No. of HH w/children in school age? 
+(hh_sac <- length(unique(hh$hhid_unique[hh$age_y>6 & hh$age_y <17])))
+# Perc. of HH w/children in school age? ~50%
+length(unique(hh$hhid_unique[hh$age_y>6 & hh$age_y <17]))/length(unique(hh$hhid_unique))
+
+# Perc. of HH w/children in school age with at least 1 going to school? ~95%
+length(unique(hh$hhid_unique[hh$age_y>6 & hh$age_y <17 & hh$school == 1]))/hh_sac
+
+# Perc. of HH w/children in school age with at least 1 going to school? ~28%
+length(unique(hh$hhid_unique[hh$age_y>6 & hh$age_y <17 & hh$school == 1  & hh$school_feed == 1]))/length(unique(hh$hhid_unique[hh$age_y>6 & hh$age_y <17 & hh$school == 1]))
+
+
+# Perc. of HH w/children in primary with at least 1 going to school? ~25%
+length(unique(hh$hhid_unique[hh$age_y>6 & hh$age_y <13 & hh$school == 1  & hh$school_feed == 1]))/length(unique(hh$hhid_unique[hh$age_y>6 & hh$age_y <13 & hh$school == 1]))
+
+# Perc. of HH w/children in seconday with at least 1 going to school? ~28%
+length(unique(hh$hhid_unique[hh$age_y>13 & hh$age_y <17 & hh$school == 1  & hh$school_feed == 1]))/length(unique(hh$hhid_unique[hh$age_y>13 & hh$age_y <17 & hh$school == 1]))
+
+```
+Checking levels, grades and age of attending children
+
+
+
+```{r}
+hh %>% 
+  filter(#age_y>6 & 
+    age_y <17) %>% 
+  filter(school == 1) %>% 
+#  filter(age_y > 100) %>% View() 
+#  select(hhid_unique, lineNum, age_y, age_m, sex, weight_kg, height_cm, height_clean, weight_clean, bmi ) #%>% View()
+  ggplot(aes(as.factor(school_level), age_y, colour =as.factor(school_grade))) + geom_boxplot()
+
+
+```
+
+## Weight 
+
+Checking the weight by age categories, we can see that the medians look fine but the spread is off. There are SAC with >100Kg of weight, which is unlikely, specially for primary school children.
+
+
+```{r}
+
+hh %>% 
+  ggplot(aes(reorder(age_group, weight_kg), weight_kg, fill = sex)) +geom_boxplot()
+
+```
+
+For infants anything above 20Kg should be suspicious...As according to WHO standards 3SD for 2yo is 17Kg. There seems to be multiple issues, I think the easier would be to look at them base on the age/sex table we have, and flag those above the percentails and look at them individually. 
+
+
+```{r}
+
+hh %>% filter(weight_clean>20 & age_y<2) %>% select(hhid_unique, lineNum,  age_y, age_m, sex, weight_kg, weight_clean, height_cm ) %>% 
+  arrange(age_y)
+
+hh %>% filter(weight_clean>40 & age_y<5) %>% select(hhid_unique, lineNum,  age_y, age_m, sex, weight_kg, weight_clean, height_cm ) %>% 
+  arrange(age_y)
+
+hh <- hh %>% mutate(
+  weight_clean = case_when(
+  (weight_kg>40 & age_y<2) |(weight_kg>100 & age_y<6) ~ weight_kg/10, # Wrong unit
+  # Wrong column
+    weight_kg>100 & age_y>6 & age_y<20 ~ height_cm, 
+    weight_kg>80 & age_y<5 & height_cm<100 ~ height_cm,
+ #   weight_kg>80 & age_y<5 & height_cm>100 ~ height_cm/10, # Wrong column & unit
+    TRUE ~ weight_kg
+  ),
+  height_clean = case_when(
+    weight_kg>100 & age_y>6 & age_y<20 ~ weight_kg, 
+    weight_kg>80 & age_y<5 ~ weight_kg,
+    height_cm<100 & age_y>6 & grepl("^1", height_cm) ~ height_cm*10,
+    TRUE ~  height_cm
+  )
+)
+
+hh %>% filter(weight_clean>100 & age_y<20) %>% select(hhid_unique, age_y, age_m, sex, weight_kg, height_cm ) %>% 
+  arrange(age_y)
+
+# Checking special cases ("307_9", "581_5", "1966_7")
+hh %>% filter(hhid_unique == "581_5") %>% select(hhid_unique, lineNum, age_y, age_m, sex, weight_kg, height_cm, bmi ) 
+
+# Checking special cases ("307_9", "581_5", "1966_7")
+hh %>% filter(hhid_unique == "307_9") %>% select(hhid_unique, lineNum, age_y, age_m, sex, weight_kg, height_cm, bmi ) 
+
+# Wrong - copied line above (12yo brother info)
+hh$height_clean[hh$hhid_unique == "307_9" & hh$lineNum == "5"] <- NA
+hh$weight_clean[hh$hhid_unique == "307_9" & hh$lineNum == "5"] <- NA
+
+# Checking special cases ("1966_7")
+hh %>% filter(hhid_unique == "1966_7") %>% select(hhid_unique, lineNum, age_y, age_m, sex, weight_kg, height_cm, bmi ) 
+
+# Wrong - swapped sibilings info (8 and 1yo sibilings info)
+hh$height_clean[hh$hhid_unique == "1966_7" & hh$lineNum == "2"] <- 123.2
+hh$weight_clean[hh$hhid_unique == "1966_7" & hh$lineNum == "2"] <- 23.2
+hh$height_clean[hh$hhid_unique == "1966_7" & hh$lineNum == "3"] <- 76.4
+hh$weight_clean[hh$hhid_unique == "1966_7" & hh$lineNum == "3"] <- 7.2
+
+```
+
+For household `"1966_7"`, they recorded the height and weight on the wrong child, so the information is reverted. The rest of the information seems fine....
+
+# Height 
+
+```{r}
+
+hh %>% filter(height_cm<100 & age_y>6 & age_y<15 & grepl("^2|^3", height_clean)
+              ) %>% select(hhid_unique, lineNum, age_y, age_m, sex, weight_kg, height_cm, height_clean) %>% 
+  arrange(age_y)
+
+# Specific case (weight & height reverted)
+hh$height_clean[hh$hhid_unique == "495_6" & hh$lineNum == "2"] <- 116.2	
+hh$weight_clean[hh$hhid_unique == "495_6" & hh$lineNum == "2"] <- 19.5
+# Specific case (weight & height reverted)
+hh$height_clean[hh$hhid_unique == "1750_3" & hh$lineNum == "5"] <- 151.2	
+hh$weight_clean[hh$hhid_unique == "1750_3" & hh$lineNum == "5"] <- 38.7
+
+
+hh$height_clean[hh$height_cm<100 & hh$age_y>6 & hh$age_y<15 & grepl("^2|^3", hh$height_clean)] <- hh$height_clean[hh$height_cm<100 & hh$age_y>6 & hh$age_y<15 & grepl("^2|^3", hh$height_clean)]+100
+
+hh$height_clean[hh$hhid_unique == "1374_9" & hh$lineNum == "4"] <- 158.1	
+```
+
+ Checking the changes, but it seems that is still not quite correct...
+ 
+```{r}
+hh %>% 
+  ggplot(aes(reorder(age_group, weight_clean), weight_clean, fill = sex)) +geom_boxplot()
+```
+ 
+
+```{r}
+
+hh %>% filter(age_y>6 & age_y <15 ) %>% 
+  mutate(bmi = weight_clean/((height_clean/100)^2)) %>% 
+ # filter(bmi > 40) %>% 
+#  select(hhid_unique, lineNum, age_y, age_m, sex, weight_kg, height_cm, height_clean, weight_clean, bmi ) #%>% View()
+  ggplot(aes(as.factor(school), bmi, colour =as.factor(school_feed))) + geom_boxplot()
+
+```
+
+
+# Spending in school feeding (c13_o)
+
+Interestingly, there is spending in SFP on non-school attendant... The main reason is likely to be that the question asking for spending on the past year. Hence, when combining current attendance & last year attendance, then we can see that spending above 0 are for only attending children. 
+
+
+```{r}
+
+hh %>% 
+  mutate(school_pastyear = ifelse(school == 1 | school_lastyear == 1, 1, 2)) %>% 
+  filter(school_feed_shill >0 ) %>% 
+  ggplot(aes( as.factor(school_pastyear), school_feed_shill,  colour =as.factor(school_feed))) + geom_boxplot()
+
+```
+
+
+```{r}
+
+ids <- hh %>% 
+   filter(school == 2) %>% 
+  filter(school_feed_shill >0 )  %>% # View() 
+ select(hhid_unique, lineNum, age_y, age_m, sex, school, school_feed_shill) %>% pull(hhid_unique)
+
+hh %>% filter(hhid_unique %in% ids) %>% select(hhid_unique, lineNum, age_y, age_m, sex, school,school_lastyear , drop_reason1, drop_reason2, school_feed_shill) %>% View()
+
+  #ggplot(aes(as.factor(school), age_y, colour =as.factor(school_feed))) + geom_boxplot()
+  ggplot(aes( as.factor(school), school_feed_shill,  colour =as.factor(school_feed))) + geom_boxplot()
+
+```
+

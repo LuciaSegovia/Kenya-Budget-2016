@@ -26,20 +26,29 @@ df <- haven::read_dta(here::here("data", "food.dta")) %>%
 str(df) 
 # Roster info
 hh <- haven::read_dta(here::here("data", "HH_Members_Information.dta")) %>% 
-  rename(sex = "", 
-         age_y = "", 
+  rename(
+         lineNum = "b01", 
+         sex = "b04", 
+         age_y = "b05_yy", 
+         age_m = "b05_mm", 
          school = "c03", 
+         school_lastyear = "c07", # attended school during the last school/academic year
          school_km = "c04", 
          school_feed = "c05",
          school_level = "c06_l", 
          school_grade = "c06_g", 
          drop_reason1 = "c09_r1",
-         drop_reason2 = "c09_R2",
-         sickness1 = "hh$e03_1", # 26 pregnancy related
-         sickness2 = "hh$e03_2", # 26 pregnancy related
+         drop_reason2 = "c09_r2",
+         school_feed_shill = "c13_o",
+         sickness1 = "e03_1", # 26 pregnancy related
+         sickness2 = "e03_2", # 26 pregnancy related
          weight_kg = "f21", 
-         height_cm = "f22", 
-         )
+         height_cm = "f22"
+         ) %>% # generating a unique hhid
+mutate(bmi = weight_kg/((height_cm/100)^2), 
+  hhid_unique = paste(clid,hhid, sep = "_")) %>% 
+  relocate( hhid_unique, .before = "clid")
+  
 # Expenditure aggregate HHs
 haven::read_dta(here::here("data", "Consumption_aggregate.dta"))
 names(haven::read_dta(here::here("data", "food.dta")))
@@ -48,9 +57,9 @@ names(haven::read_dta(here::here("data", "Agriculture_output_L1_L20.dta")))
 df3 <- haven::read_dta(here::here("data", "Agriculture_output_L1_L20.dta")) %>% 
   filter(k01 == 1)
 
-# Checkiing food items and NSU
+# Checking food items and NSU
 sort(unique(haven::as_factor(df$item_code)))
-unique(haven::as_factor(df$t04_sq))
+unique(haven::as_factor(df$purchased_unit))
 unique(haven::as_factor(df3$l02_cr))
 
 
