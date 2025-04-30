@@ -5,25 +5,6 @@ library(dplyr)
 library(tidyr)
 
 # Data
-# Food consumption at HHs (7days)
-df <- haven::read_dta(here::here("data", "food.dta")) %>% 
-  rename(
-         purchased = "t04_qy", 
-         purchased_unit = "t04_su", 
-         pop = "t05",  # point of purchase
-         cons_purch = "t06_qy",
-         cons_purch_unit = "t06_su",
-         cons_stock = "t07_qy",
-         cons_stock_unit = "t07_su",
-         cons_own = "t08_qy",
-         cons_own_unit = "t08_su",
-         cons_gift = "t09_qy",
-         cons_gidt_unit = "t09_su",
-         cons_total = "t10_qy",
-         cons_unit = "t10_su"
-         )
-# Best to explore the meaning of variables in stata dataset.
-str(df) 
 # Roster info
 hh <- haven::read_dta(here::here("data", "HH_Members_Information.dta")) %>% 
   rename(
@@ -31,7 +12,7 @@ hh <- haven::read_dta(here::here("data", "HH_Members_Information.dta")) %>%
          sex = "b04", 
          age_y = "b05_yy", 
          age_m = "b05_mm", 
-         school = "c03", 
+         school = "c03", # attended to school
          school_lastyear = "c07", # attended school during the last school/academic year
          school_km = "c04", 
          school_feed = "c05",
@@ -46,9 +27,30 @@ hh <- haven::read_dta(here::here("data", "HH_Members_Information.dta")) %>%
          height_cm = "f22"
          ) %>% # generating a unique hhid
 mutate(bmi = weight_kg/((height_cm/100)^2), 
-  hhid_unique = paste(clid,hhid, sep = "_")) %>% 
-  relocate( hhid_unique, .before = "clid")
-  
+  hhid_unique = paste(clid, hhid, sep = "_"), 
+  id_unique = paste(clid, hhid,lineNum, sep = "_")) %>% 
+  relocate( c(hhid_unique,id_unique), .before = "clid")
+
+# Food consumption at HHs (7days)
+df <- haven::read_dta(here::here("data", "food.dta")) %>% 
+  rename(
+    purchased = "t04_qy", 
+    purchased_unit = "t04_su", 
+    pop = "t05",  # point of purchase
+    cons_purch = "t06_qy",
+    cons_purch_unit = "t06_su",
+    cons_stock = "t07_qy",
+    cons_stock_unit = "t07_su",
+    cons_own = "t08_qy",
+    cons_own_unit = "t08_su",
+    cons_gift = "t09_qy",
+    cons_gidt_unit = "t09_su",
+    cons_total = "t10_qy",
+    cons_unit = "t10_su"
+  )
+# Best to explore the meaning of variables in stata dataset.
+str(df) 
+
 # Expenditure aggregate HHs
 haven::read_dta(here::here("data", "Consumption_aggregate.dta"))
 names(haven::read_dta(here::here("data", "food.dta")))

@@ -8,9 +8,18 @@ editor: Source
 # Individual data exploration
 
 
+
+```{r}
+
+#install.packages("anthro")
+library(anthro)
+
+```
+
+
 ##  Age
 
-Children age 6–13 for primary school  and children age 14–17
+Children age 6–13 for primary school and children age 14–17
 for secondary school
 
 ```{r}
@@ -22,6 +31,19 @@ hh$age_y[hh$age_y>200] # Sounds like NA (98	Age not known; 99	Age not stated)
 hh$age_y[hh$age_y>200] <- NA
 hh$age_m[is.na(hh$age_y)]
 sum(is.na(hh$age_m))
+
+hh$sex <- as.character(hh$sex)
+
+#create population pyramid
+hh %>% group_by(age_y, sex) %>% 
+  summarise(population = n()) %>% 
+  mutate(sex = as.character(sex)) %>% 
+ggplot(aes(x = age_y, fill = sex,
+                 y = ifelse(test = sex == "1",
+                            yes = -population, no = population))) + 
+  geom_bar(stat = "identity") +
+#  scale_y_continuous(labels = abs, limits = max(hh$population) * c(-1,1)) +
+  coord_flip()
 
 # Creating a dummy for age groups
 
@@ -37,7 +59,7 @@ hh <- hh %>%
     across(sex, as.factor))
 
 hh %>% 
-  ggplot(aes(reorder(age_group, age_y), age_y, fill = sex)) +geom_boxplot()
+  ggplot(aes(reorder(age_group, age_y), age_y, fill = sex)) + geom_boxplot()
 
 ```
 
@@ -55,6 +77,12 @@ length(unique(hh$clid))
 # Perc. of HH w/children in school age? ~50%
 length(unique(hh$hhid_unique[hh$age_y>6 & hh$age_y <17]))/length(unique(hh$hhid_unique))
 
+```
+## School attendance & feeding 
+
+
+```{r}
+
 # Perc. of HH w/children in school age with at least 1 going to school? ~95%
 length(unique(hh$hhid_unique[hh$age_y>6 & hh$age_y <17 & hh$school == 1]))/hh_sac
 
@@ -69,23 +97,116 @@ length(unique(hh$hhid_unique[hh$age_y>6 & hh$age_y <13 & hh$school == 1  & hh$sc
 length(unique(hh$hhid_unique[hh$age_y>13 & hh$age_y <17 & hh$school == 1  & hh$school_feed == 1]))/length(unique(hh$hhid_unique[hh$age_y>13 & hh$age_y <17 & hh$school == 1]))
 
 ```
-Checking levels, grades and age of attending children
 
 
+Checking levels, grades and age of children attanding the school.
 
 ```{r}
+
+# Checking recoded 
+length(hh$school_level[hh$school_level>90 & !is.na(hh$school_level)])
+#hh$school_level[hh$school_level>90 & !is.na(hh$school_level)] <- NA
+
+haven::print_labels(hh$school_level)
+
+# Primary school
 hh %>% 
-  filter(#age_y>6 & 
-    age_y <17) %>% 
+  filter(age_y>6 & 
+    age_y <14) %>% 
   filter(school == 1) %>% 
 #  filter(age_y > 100) %>% View() 
 #  select(hhid_unique, lineNum, age_y, age_m, sex, weight_kg, height_cm, height_clean, weight_clean, bmi ) #%>% View()
   ggplot(aes(as.factor(school_level), age_y, colour =as.factor(school_grade))) + geom_boxplot()
 
+```
+
+In general, we can see a increase trend with school level, grade and age. Although, we can assume that some of the data may be rongly recoded. Eg., some SAC recoded as secondary or university udergrads. It is likely that the level was recorded as grade and vice versa. As, they were mostly recorded as grade one and two. 
+
+If we are going to use this variables, we should recode some of the entries. 
+
+```{r}
+
+# Primary school
+hh %>% 
+  filter(age_y>6 & 
+    age_y <14) %>% 
+  filter(school == 1) %>% 
+#  filter(age_y > 100) %>% View() 
+#  select(hhid_unique, lineNum, age_y, age_m, sex, weight_kg, height_cm, height_clean, weight_clean, bmi ) #%>% View()
+  ggplot(aes(as.factor(school_level), colour =as.factor(school_feed))) + geom_density() + facet_wrap(~school_level)
+
+# No. of SAC (primary only)
+N_sac <- length(hh$id_unique[hh$age_y>6 & hh$age_y <14])
+
+# Primary school - school feeding
+hh %>% 
+  filter(age_y>6 & 
+    age_y <14) %>% 
+#  filter(school == 1) %>% 
+  group_by(school, school_feed) %>% 
+  summarise(count = round(n()/N_sac*100))
+
 
 ```
 
-## Weight 
+The number of children enrolled in shool and receiving (ot at least attending to a school which provide school feeding) are in line but slightly higher than those reported in the Country profile (GCNF, 2019). 
+
+```{r}
+
+# No. of SAC attending schools w/ SFP
+N_sac_feed <- length(hh$id_unique[hh$age_y>6 & hh$age_y <14 & !is.na(hh$school_feed) &  hh$school_feed == 1])
+
+# Primary school - school feeding by sex
+hh %>% 
+  filter(age_y>6 & 
+    age_y <14) %>% 
+ filter(school_feed == 1) %>% 
+  group_by(sex) %>% 
+  summarise(count = round(n()/N_sac_feed*100))
+```
+
+
+Regarding the sex split for children receiving school feeding, here, was a bit more balanced (although this is not accounting for the survey design). 
+
+
+
+### Expending on school feeding (c13_o)
+
+Interestingly, there is spending in SFP on non-school attendant... The main reason is likely to be that the question asking for spending on the past year. Hence, when combining current attendance & last year attendance, then we can see that spending above 0 are for only attending children. 
+
+
+```{r}
+
+hh %>% 
+  mutate(school_pastyear = ifelse(school == 1 | school_lastyear == 1, 1, 2)) %>% 
+  filter(school_feed_shill >0 ) %>% 
+  ggplot(aes( as.factor(school_pastyear), school_feed_shill,  colour =as.factor(school_feed))) + geom_boxplot()
+
+```
+
+
+```{r}
+
+ids <- hh %>% 
+   filter(school == 2) %>% 
+  filter(school_feed_shill >0 )  %>% # View() 
+ select(hhid_unique, lineNum, age_y, age_m, sex, school, school_feed_shill) %>% pull(hhid_unique)
+
+hh %>% filter(hhid_unique %in% ids) %>% select(hhid_unique, lineNum, age_y, age_m, sex, school,school_lastyear , drop_reason1, drop_reason2, school_feed_shill) %>% View()
+
+  #ggplot(aes(as.factor(school), age_y, colour =as.factor(school_feed))) + geom_boxplot()
+  ggplot(aes( as.factor(school), school_feed_shill,  colour =as.factor(school_feed))) + geom_boxplot()
+
+```
+
+
+## Anthroprometry
+
+There is an R package from WHO that can be used to calculate and check anthro data for <5 yo `install.packages("anthro")`. 
+
+
+
+### Weight 
 
 Checking the weight by age categories, we can see that the medians look fine but the spread is off. There are SAC with >100Kg of weight, which is unlikely, specially for primary school children.
 
@@ -93,7 +214,14 @@ Checking the weight by age categories, we can see that the medians look fine but
 ```{r}
 
 hh %>% 
-  ggplot(aes(reorder(age_group, weight_kg), weight_kg, fill = sex)) +geom_boxplot()
+  ggplot(aes(reorder(age_group, weight_kg), weight_kg, fill = sex)) + geom_boxplot()
+
+# 
+hh %>%
+  mutate(age_group = factor(age_group, c("infant", "preschool", "primary school", "secondary school", "adult", "eldery"))) %>% 
+  ggplot(aes( weight_kg, fill = sex)) + 
+  geom_histogram(binwidth = 2) + #coord_flip()+
+  facet_wrap(~age_group)
 
 ```
 
@@ -151,7 +279,7 @@ hh$weight_clean[hh$hhid_unique == "1966_7" & hh$lineNum == "3"] <- 7.2
 
 For household `"1966_7"`, they recorded the height and weight on the wrong child, so the information is reverted. The rest of the information seems fine....
 
-# Height 
+### Height 
 
 ```{r}
 
@@ -191,32 +319,34 @@ hh %>% filter(age_y>6 & age_y <15 ) %>%
 ```
 
 
-# Spending in school feeding (c13_o)
-
-Interestingly, there is spending in SFP on non-school attendant... The main reason is likely to be that the question asking for spending on the past year. Hence, when combining current attendance & last year attendance, then we can see that spending above 0 are for only attending children. 
-
-
 ```{r}
 
-hh %>% 
-  mutate(school_pastyear = ifelse(school == 1 | school_lastyear == 1, 1, 2)) %>% 
-  filter(school_feed_shill >0 ) %>% 
-  ggplot(aes( as.factor(school_pastyear), school_feed_shill,  colour =as.factor(school_feed))) + geom_boxplot()
+# Calculating total months
 
-```
+hh$total_months <- ifelse(!is.na(hh$age_m), hh$age_m +(hh$age_y*12), hh$age_y*12)
+
+test <- with(
+  hh,
+  anthro_zscores(
+    sex = sex, age = total_months, is_age_in_month = TRUE, 
+    weight = weight_kg, lenhei = height_cm
+  )
+)
 
 
-```{r}
+test$id_unique <- hh$id_unique
+names(test)
 
-ids <- hh %>% 
-   filter(school == 2) %>% 
-  filter(school_feed_shill >0 )  %>% # View() 
- select(hhid_unique, lineNum, age_y, age_m, sex, school, school_feed_shill) %>% pull(hhid_unique)
+test %>% relocate(id_unique, .before = "clenhei") %>% 
+  filter(!is.na(flen)) %>% 
+  left_join(., hh %>% select(age_m, age_y, age_group, height_cm, weight_kg, hhid_unique, id_unique)) %>% 
+  ggplot(aes(height_cm, fill = as.factor(flen))) + geom_histogram() +
+  facet_wrap(~age_group)
+  
 
-hh %>% filter(hhid_unique %in% ids) %>% select(hhid_unique, lineNum, age_y, age_m, sex, school,school_lastyear , drop_reason1, drop_reason2, school_feed_shill) %>% View()
-
-  #ggplot(aes(as.factor(school), age_y, colour =as.factor(school_feed))) + geom_boxplot()
-  ggplot(aes( as.factor(school), school_feed_shill,  colour =as.factor(school_feed))) + geom_boxplot()
-
+test %>% relocate(id_unique, .before = "clenhei") %>% 
+  filter(!is.na(flen)) %>% 
+  left_join(., hh %>% select(age_m, age_y, age_group, height_cm, weight_kg, hhid_unique, id_unique)) %>% filter(flen == "1")
+  
 ```
 
