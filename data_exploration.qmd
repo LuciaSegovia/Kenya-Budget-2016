@@ -4,6 +4,14 @@ format: html
 editor: Source
 ---
 
+# Data sources
+
+There are few household surveys in Kenya wit good food item information. However, the most recent is smaller in number of households, and it also provided less information regarding the school feeding. 
+
+We could combine the information of both surveys to strenghtening the resuts.
+
+Also, there is no GIS information in any, although for the most recent, the KENYA CONTINUOUS HOUSEHOLD SURVEY PROGRAMMME (2020 KCHS), in the survey manual and questionaire, GPS coordenates (lon/lat) were collected.  
+
 
 # Individual data exploration
 

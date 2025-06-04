@@ -4,4 +4,12 @@
 .Ruserdata
 
 
-data/
+# Folder w/ data
+data/ 
+
+# Folder with html files for maps viz
+ke-*/
+
+# Viz outputs
+*.html
+
