@@ -13,49 +13,129 @@ We could combine the information of both surveys to strenghtening the resuts.
 Also, there is no GIS information in any, although for the most recent, the KENYA CONTINUOUS HOUSEHOLD SURVEY PROGRAMMME (2020 KCHS), in the survey manual and questionaire, GPS coordenates (lon/lat) were collected.  
 
 
-# Individual data exploration
+## Individual data exploration
 
 
 
 ```{r}
-
 #install.packages("anthro")
-library(anthro)
+#library(anthro)
+library(dplyr)
+library(ggplot2)
+library(sf) # spatial data manipulation
+library(tmap) # spatial data viz
+
+# Data
+# GIS data
+ken_admin2 <- st_read(here::here("data", "gis", "KEN", "AgroMaps", "Africa", "shapefiles",
+                           "KEN", "admin2", "ken.shp"))
+
+ken_admin2 <- ken_admin2 %>%
+  mutate(county_name = stringr::str_to_title(NAME2_), 
+         county_name = case_when(
+  county_name == "E. Marakwet" ~ "Elgeyo/Marakwet", 
+  county_name == "Homa_bay" ~ "Homa Bay", 
+  county_name == "Muranga" ~ "Murang'a", 
+  county_name == "Nairobi" ~ "Nairobi City", 
+  county_name == "Taita Taveta" ~ "Taita/Taveta", 
+  county_name == "Nithi" ~ "Tharaka-Nithi", 
+  county_name == "Trans-Nzoia" ~ "Trans Nzoia", 
+  .default = county_name))
+
+
+head(ken_admin2)
+
+# Household info
+hh <- haven::read_dta(here::here("data",  "HH_Information.dta"))
+# Roster info
+roster <- haven::read_dta(here::here("data", "HH_Members_Information.dta")) %>%
+  rename(
+         lineNum = "b01", 
+         sex = "b04", 
+         age_y = "b05_yy", 
+         age_m = "b05_mm", 
+         school = "c03", # attended to school
+         school_lastyear = "c07", # attended school during the last school/academic year
+         school_km = "c04", 
+         school_feed = "c05",
+         school_level = "c06_l", 
+         school_grade = "c06_g", 
+         drop_reason1 = "c09_r1",
+         drop_reason2 = "c09_r2",
+         school_feed_shill = "c13_o",
+         sickness1 = "e03_1", # 26 pregnancy related
+         sickness2 = "e03_2", # 26 pregnancy related
+         weight_kg = "f21", 
+         height_cm = "f22"
+         ) %>% # generating a unique hhid
+mutate(bmi = weight_kg/((height_cm/100)^2), 
+  hhid_unique = paste(clid, hhid, sep = "_"), 
+  id_unique = paste(clid, hhid,lineNum, sep = "_")) %>% 
+  relocate( c(hhid_unique,id_unique), .before = "clid") %>% 
+  left_join(., hh %>% select(county, resid, clid, hhid))
+
+# Extracting the county name from the stata label
+roster$county_name <- as.character(forcats::as_factor(roster[["county"]]))
+
+# Data from F&D Domain
+data <- read.csv(here::here("data", "FAOSTAT_data_en_6-17-2025.csv"))
+str(data)
+unique(data$Geographic.Level)
+
+# Crop data 
+# Reading csv (lon(x)/lat(y))
+crop <- read.csv(here::here("data", "spam2017V2r1_SSA_Y_TA.csv")) %>% 
+  dplyr::filter(iso3 == "KEN") %>% st_as_sf(.,  coords = c("x", "y"))
+
+crop_names <- read.csv(here::here("data", "crop_names.csv")) 
+
+# School info
+edu <- st_read("data/gis/05_Educational_Centers_AGGREGATION_EPSG4326_2024_06_17_CEAT.gpkg")
+edu <- edu %>% filter(iso3code == "KEN")
+head(edu)
 
 ```
 
 
-##  Age
+###  Age
 
 Children age 6–13 for primary school and children age 14–17
 for secondary school
 
 ```{r}
 
-sum(is.na(hh$age_y))
-hist(hh$age_y)
-sum(hh$age_y>200)
-hh$age_y[hh$age_y>200] # Sounds like NA (98	Age not known; 99	Age not stated)
-hh$age_y[hh$age_y>200] <- NA
-hh$age_m[is.na(hh$age_y)]
-sum(is.na(hh$age_m))
+# Checking for missing values
+sum(is.na(roster$age_y)) # Age
 
-hh$sex <- as.character(hh$sex)
+hist(roster$age_y)
+sum(roster$age_y>200)
+roster$age_y[roster$age_y>200] # Sounds like NA (98	Age not known; 99	Age not stated)
+roster$age_y[roster$age_y>200] <- NA
+roster$age_m[is.na(roster$age_y)]
+sum(is.na(roster$age_m))
+
+#roster$sex <- as.character(roster$sex)
 
 #create population pyramid
-hh %>% group_by(age_y, sex) %>% 
+roster %>% group_by(age_y, sex) %>% 
   summarise(population = n()) %>% 
   mutate(sex = as.character(sex)) %>% 
 ggplot(aes(x = age_y, fill = sex,
                  y = ifelse(test = sex == "1",
                             yes = -population, no = population))) + 
   geom_bar(stat = "identity") +
-#  scale_y_continuous(labels = abs, limits = max(hh$population) * c(-1,1)) +
+#  scale_y_continuous(labels = abs, limits = max(roster$population) * c(-1,1)) +
   coord_flip()
 
-# Creating a dummy for age groups
+```
 
-hh <- hh %>% 
+#### Age group categories
+
+For easy manipulation, we are creaing a few age categories.
+
+```{r}
+# Creating a dummy for age groups
+roster <- roster %>% 
   mutate(age_group = case_when(
     age_y<=2 ~ "infant", 
     age_y >2  & age_y < 6 ~ "preschool" ,
@@ -66,43 +146,78 @@ hh <- hh %>%
     TRUE ~ NA ), 
     across(sex, as.factor))
 
-hh %>% 
+roster %>% 
   ggplot(aes(reorder(age_group, age_y), age_y, fill = sex)) + geom_boxplot()
 
 ```
-
 
 
 Number of children in school age?
 
 ```{r}
 
-length(unique(hh$hhid_unique))
-length(unique(hh$clid))
+length(unique(roster$hhid_unique))
+length(unique(roster$clid))
 
 # No. of HH w/children in school age? 
-(hh_sac <- length(unique(hh$hhid_unique[hh$age_y>6 & hh$age_y <17])))
+(roster_sac <- length(unique(roster$hhid_unique[roster$age_y>6 & roster$age_y <17])))
 # Perc. of HH w/children in school age? ~50%
-length(unique(hh$hhid_unique[hh$age_y>6 & hh$age_y <17]))/length(unique(hh$hhid_unique))
+length(unique(roster$hhid_unique[roster$age_y>6 & roster$age_y <17]))/length(unique(roster$hhid_unique))
+
 
 ```
-## School attendance & feeding 
+
+
+Let's now see wether the distribution across the country is similar
+
+```{r}
+names(roster)
+grep("feed", labelled::var_label(roster), ignore.case = TRUE, value = TRUE)
+
+tmap_mode("view")
+roster %>% # filter(age_group == "primary school") %>% 
+  group_by(county, county_name,  age_group) %>% 
+  mutate(count = length(id_unique)) %>% select(county, county_name, age_group, count) %>% distinct() %>%  ungroup() %>% 
+  group_by(county, county_name) %>% 
+  mutate(per = count/sum(count)*100) %>% 
+  filter(age_group == "primary school") %>%
+  left_join(., ken_admin2) %>% 
+  # filter(is.na(geometry))
+  # class
+  st_as_sf() %>% 
+  tm_shape() +
+  tm_polygons(fill = "count",
+               fill.scale = tm_scale_intervals(breaks = c(200,400,600,800, 1000)),
+              fill_alpha = 0.5) +
+  tm_shape(edu %>% filter(category == "primary")) +
+  tm_symbols(size = "student_per_school", 
+             size.scale = tm_scale_intervals(values = c(0.3,0.5, 0.8, 1.2), # value.na = 0.1,
+                         breaks = c(1,150,300,450,600, 171945)), 
+             fill = "student_per_school",
+            fill.scale = tm_scale_intervals(values =palette7,  breaks = c(1,150,300,450,600, 171945)), 
+            size.legend = tm_legend_combine("fill"), 
+            options = opt_tm_labels(remove_overlap = FALSE)) 
+
+```
+
+
+### School attendance & feeding 
 
 
 ```{r}
 
 # Perc. of HH w/children in school age with at least 1 going to school? ~95%
-length(unique(hh$hhid_unique[hh$age_y>6 & hh$age_y <17 & hh$school == 1]))/hh_sac
+length(unique(roster$hhid_unique[roster$age_y>6 & roster$age_y <17 & roster$school == 1]))/roster_sac
 
 # Perc. of HH w/children in school age with at least 1 going to school? ~28%
-length(unique(hh$hhid_unique[hh$age_y>6 & hh$age_y <17 & hh$school == 1  & hh$school_feed == 1]))/length(unique(hh$hhid_unique[hh$age_y>6 & hh$age_y <17 & hh$school == 1]))
+length(unique(roster$hhid_unique[roster$age_y>6 & roster$age_y <17 & roster$school == 1  & roster$school_feed == 1]))/length(unique(roster$hhid_unique[roster$age_y>6 & roster$age_y <17 & roster$school == 1]))
 
 
 # Perc. of HH w/children in primary with at least 1 going to school? ~25%
-length(unique(hh$hhid_unique[hh$age_y>6 & hh$age_y <13 & hh$school == 1  & hh$school_feed == 1]))/length(unique(hh$hhid_unique[hh$age_y>6 & hh$age_y <13 & hh$school == 1]))
+length(unique(roster$hhid_unique[roster$age_y>6 & roster$age_y <13 & roster$school == 1  & roster$school_feed == 1]))/length(unique(roster$hhid_unique[roster$age_y>6 & roster$age_y <13 & roster$school == 1]))
 
 # Perc. of HH w/children in seconday with at least 1 going to school? ~28%
-length(unique(hh$hhid_unique[hh$age_y>13 & hh$age_y <17 & hh$school == 1  & hh$school_feed == 1]))/length(unique(hh$hhid_unique[hh$age_y>13 & hh$age_y <17 & hh$school == 1]))
+length(unique(roster$hhid_unique[roster$age_y>13 & roster$age_y <17 & roster$school == 1  & roster$school_feed == 1]))/length(unique(roster$hhid_unique[roster$age_y>13 & roster$age_y <17 & roster$school == 1]))
 
 ```
 
@@ -112,19 +227,23 @@ Checking levels, grades and age of children attanding the school.
 ```{r}
 
 # Checking recoded 
-length(hh$school_level[hh$school_level>90 & !is.na(hh$school_level)])
-#hh$school_level[hh$school_level>90 & !is.na(hh$school_level)] <- NA
+length(roster$school_level[roster$school_level>90 & !is.na(roster$school_level)])
+#roster$school_level[roster$school_level>90 & !is.na(roster$school_level)] <- NA
 
-haven::print_labels(hh$school_level)
+haven::print_labels(roster$school_level)
 
 # Primary school
-hh %>% 
+roster %>% 
   filter(age_y>6 & 
     age_y <14) %>% 
   filter(school == 1) %>% 
 #  filter(age_y > 100) %>% View() 
-#  select(hhid_unique, lineNum, age_y, age_m, sex, weight_kg, height_cm, height_clean, weight_clean, bmi ) #%>% View()
+#  select(rosterid_unique, lineNum, age_y, age_m, sex, weight_kg, height_cm, height_clean, weight_clean, bmi ) #%>% View()
   ggplot(aes(as.factor(school_level), age_y, colour =as.factor(school_grade))) + geom_boxplot()
+
+tmap_mode("plot")
+tm_shape(World) +
+  tm_polygons()
 
 ```
 
@@ -135,7 +254,7 @@ If we are going to use this variables, we should recode some of the entries.
 ```{r}
 
 # Primary school
-hh %>% 
+roster %>% 
   filter(age_y>6 & 
     age_y <14) %>% 
   filter(school == 1) %>% 
@@ -144,10 +263,10 @@ hh %>%
   ggplot(aes(as.factor(school_level), colour =as.factor(school_feed))) + geom_density() + facet_wrap(~school_level)
 
 # No. of SAC (primary only)
-N_sac <- length(hh$id_unique[hh$age_y>6 & hh$age_y <14])
+N_sac <- length(roster$id_unique[roster$age_y>6 & roster$age_y <14])
 
 # Primary school - school feeding
-hh %>% 
+roster %>% 
   filter(age_y>6 & 
     age_y <14) %>% 
 #  filter(school == 1) %>% 
@@ -162,10 +281,10 @@ The number of children enrolled in shool and receiving (ot at least attending to
 ```{r}
 
 # No. of SAC attending schools w/ SFP
-N_sac_feed <- length(hh$id_unique[hh$age_y>6 & hh$age_y <14 & !is.na(hh$school_feed) &  hh$school_feed == 1])
+N_sac_feed <- length(roster$id_unique[roster$age_y>6 & roster$age_y <14 & !is.na(roster$school_feed) &  roster$school_feed == 1])
 
 # Primary school - school feeding by sex
-hh %>% 
+roster %>% 
   filter(age_y>6 & 
     age_y <14) %>% 
  filter(school_feed == 1) %>% 
@@ -178,14 +297,14 @@ Regarding the sex split for children receiving school feeding, here, was a bit m
 
 
 
-### Expending on school feeding (c13_o)
+#### Expending on school feeding (c13_o)
 
 Interestingly, there is spending in SFP on non-school attendant... The main reason is likely to be that the question asking for spending on the past year. Hence, when combining current attendance & last year attendance, then we can see that spending above 0 are for only attending children. 
 
 
 ```{r}
 
-hh %>% 
+roster %>% 
   mutate(school_pastyear = ifelse(school == 1 | school_lastyear == 1, 1, 2)) %>% 
   filter(school_feed_shill >0 ) %>% 
   ggplot(aes( as.factor(school_pastyear), school_feed_shill,  colour =as.factor(school_feed))) + geom_boxplot()
@@ -195,12 +314,12 @@ hh %>%
 
 ```{r}
 
-ids <- hh %>% 
+ids <- roster %>% 
    filter(school == 2) %>% 
   filter(school_feed_shill >0 )  %>% # View() 
  select(hhid_unique, lineNum, age_y, age_m, sex, school, school_feed_shill) %>% pull(hhid_unique)
 
-hh %>% filter(hhid_unique %in% ids) %>% select(hhid_unique, lineNum, age_y, age_m, sex, school,school_lastyear , drop_reason1, drop_reason2, school_feed_shill) %>% View()
+roster %>% filter(hhid_unique %in% ids) %>% select(hhid_unique, lineNum, age_y, age_m, sex, school,school_lastyear , drop_reason1, drop_reason2, school_feed_shill) %>% View()
 
   #ggplot(aes(as.factor(school), age_y, colour =as.factor(school_feed))) + geom_boxplot()
   ggplot(aes( as.factor(school), school_feed_shill,  colour =as.factor(school_feed))) + geom_boxplot()
@@ -208,24 +327,24 @@ hh %>% filter(hhid_unique %in% ids) %>% select(hhid_unique, lineNum, age_y, age_
 ```
 
 
-## Anthroprometry
+### Anthroprometry
 
 There is an R package from WHO that can be used to calculate and check anthro data for <5 yo `install.packages("anthro")`. 
 
 
 
-### Weight 
+#### Weight 
 
 Checking the weight by age categories, we can see that the medians look fine but the spread is off. There are SAC with >100Kg of weight, which is unlikely, specially for primary school children.
 
 
 ```{r}
 
-hh %>% 
+roster %>% 
   ggplot(aes(reorder(age_group, weight_kg), weight_kg, fill = sex)) + geom_boxplot()
 
 # 
-hh %>%
+roster %>%
   mutate(age_group = factor(age_group, c("infant", "preschool", "primary school", "secondary school", "adult", "eldery"))) %>% 
   ggplot(aes( weight_kg, fill = sex)) + 
   geom_histogram(binwidth = 2) + #coord_flip()+
@@ -238,13 +357,13 @@ For infants anything above 20Kg should be suspicious...As according to WHO stand
 
 ```{r}
 
-hh %>% filter(weight_clean>20 & age_y<2) %>% select(hhid_unique, lineNum,  age_y, age_m, sex, weight_kg, weight_clean, height_cm ) %>% 
+roster %>% filter(weight_clean>20 & age_y<2) %>% select(hhid_unique, lineNum,  age_y, age_m, sex, weight_kg, weight_clean, height_cm ) %>% 
   arrange(age_y)
 
-hh %>% filter(weight_clean>40 & age_y<5) %>% select(hhid_unique, lineNum,  age_y, age_m, sex, weight_kg, weight_clean, height_cm ) %>% 
+roster %>% filter(weight_clean>40 & age_y<5) %>% select(hhid_unique, lineNum,  age_y, age_m, sex, weight_kg, weight_clean, height_cm ) %>% 
   arrange(age_y)
 
-hh <- hh %>% mutate(
+roster <- roster %>% mutate(
   weight_clean = case_when(
   (weight_kg>40 & age_y<2) |(weight_kg>100 & age_y<6) ~ weight_kg/10, # Wrong unit
   # Wrong column
@@ -261,64 +380,64 @@ hh <- hh %>% mutate(
   )
 )
 
-hh %>% filter(weight_clean>100 & age_y<20) %>% select(hhid_unique, age_y, age_m, sex, weight_kg, height_cm ) %>% 
+roster %>% filter(weight_clean>100 & age_y<20) %>% select(hhid_unique, age_y, age_m, sex, weight_kg, height_cm ) %>% 
   arrange(age_y)
 
 # Checking special cases ("307_9", "581_5", "1966_7")
-hh %>% filter(hhid_unique == "581_5") %>% select(hhid_unique, lineNum, age_y, age_m, sex, weight_kg, height_cm, bmi ) 
+roster %>% filter(hhid_unique == "581_5") %>% select(hhid_unique, lineNum, age_y, age_m, sex, weight_kg, height_cm, bmi ) 
 
 # Checking special cases ("307_9", "581_5", "1966_7")
-hh %>% filter(hhid_unique == "307_9") %>% select(hhid_unique, lineNum, age_y, age_m, sex, weight_kg, height_cm, bmi ) 
+roster %>% filter(hhid_unique == "307_9") %>% select(hhid_unique, lineNum, age_y, age_m, sex, weight_kg, height_cm, bmi ) 
 
 # Wrong - copied line above (12yo brother info)
-hh$height_clean[hh$hhid_unique == "307_9" & hh$lineNum == "5"] <- NA
-hh$weight_clean[hh$hhid_unique == "307_9" & hh$lineNum == "5"] <- NA
+roster$height_clean[roster$hhid_unique == "307_9" & roster$lineNum == "5"] <- NA
+roster$weight_clean[roster$hhid_unique == "307_9" & roster$lineNum == "5"] <- NA
 
 # Checking special cases ("1966_7")
-hh %>% filter(hhid_unique == "1966_7") %>% select(hhid_unique, lineNum, age_y, age_m, sex, weight_kg, height_cm, bmi ) 
+roster %>% filter(hhid_unique == "1966_7") %>% select(hhid_unique, lineNum, age_y, age_m, sex, weight_kg, height_cm, bmi ) 
 
 # Wrong - swapped sibilings info (8 and 1yo sibilings info)
-hh$height_clean[hh$hhid_unique == "1966_7" & hh$lineNum == "2"] <- 123.2
-hh$weight_clean[hh$hhid_unique == "1966_7" & hh$lineNum == "2"] <- 23.2
-hh$height_clean[hh$hhid_unique == "1966_7" & hh$lineNum == "3"] <- 76.4
-hh$weight_clean[hh$hhid_unique == "1966_7" & hh$lineNum == "3"] <- 7.2
+roster$height_clean[roster$hhid_unique == "1966_7" & roster$lineNum == "2"] <- 123.2
+roster$weight_clean[roster$hhid_unique == "1966_7" & roster$lineNum == "2"] <- 23.2
+roster$height_clean[roster$hhid_unique == "1966_7" & roster$lineNum == "3"] <- 76.4
+roster$weight_clean[roster$hhid_unique == "1966_7" & roster$lineNum == "3"] <- 7.2
 
 ```
 
 For household `"1966_7"`, they recorded the height and weight on the wrong child, so the information is reverted. The rest of the information seems fine....
 
-### Height 
+#### Height 
 
 ```{r}
 
-hh %>% filter(height_cm<100 & age_y>6 & age_y<15 & grepl("^2|^3", height_clean)
+roster %>% filter(height_cm<100 & age_y>6 & age_y<15 & grepl("^2|^3", height_clean)
               ) %>% select(hhid_unique, lineNum, age_y, age_m, sex, weight_kg, height_cm, height_clean) %>% 
   arrange(age_y)
 
 # Specific case (weight & height reverted)
-hh$height_clean[hh$hhid_unique == "495_6" & hh$lineNum == "2"] <- 116.2	
-hh$weight_clean[hh$hhid_unique == "495_6" & hh$lineNum == "2"] <- 19.5
+roster$height_clean[roster$hhid_unique == "495_6" & roster$lineNum == "2"] <- 116.2	
+roster$weight_clean[roster$hhid_unique == "495_6" & roster$lineNum == "2"] <- 19.5
 # Specific case (weight & height reverted)
-hh$height_clean[hh$hhid_unique == "1750_3" & hh$lineNum == "5"] <- 151.2	
-hh$weight_clean[hh$hhid_unique == "1750_3" & hh$lineNum == "5"] <- 38.7
+roster$height_clean[roster$hhid_unique == "1750_3" & roster$lineNum == "5"] <- 151.2	
+roster$weight_clean[roster$hhid_unique == "1750_3" & roster$lineNum == "5"] <- 38.7
 
 
-hh$height_clean[hh$height_cm<100 & hh$age_y>6 & hh$age_y<15 & grepl("^2|^3", hh$height_clean)] <- hh$height_clean[hh$height_cm<100 & hh$age_y>6 & hh$age_y<15 & grepl("^2|^3", hh$height_clean)]+100
+roster$height_clean[roster$height_cm<100 & roster$age_y>6 & roster$age_y<15 & grepl("^2|^3", roster$height_clean)] <- roster$height_clean[roster$height_cm<100 & roster$age_y>6 & roster$age_y<15 & grepl("^2|^3", roster$height_clean)]+100
 
-hh$height_clean[hh$hhid_unique == "1374_9" & hh$lineNum == "4"] <- 158.1	
+roster$height_clean[roster$hhid_unique == "1374_9" & roster$lineNum == "4"] <- 158.1	
 ```
 
  Checking the changes, but it seems that is still not quite correct...
  
 ```{r}
-hh %>% 
+roster %>% 
   ggplot(aes(reorder(age_group, weight_clean), weight_clean, fill = sex)) +geom_boxplot()
 ```
  
 
 ```{r}
 
-hh %>% filter(age_y>6 & age_y <15 ) %>% 
+roster %>% filter(age_y>6 & age_y <15 ) %>% 
   mutate(bmi = weight_clean/((height_clean/100)^2)) %>% 
  # filter(bmi > 40) %>% 
 #  select(hhid_unique, lineNum, age_y, age_m, sex, weight_kg, height_cm, height_clean, weight_clean, bmi ) #%>% View()
@@ -331,10 +450,10 @@ hh %>% filter(age_y>6 & age_y <15 ) %>%
 
 # Calculating total months
 
-hh$total_months <- ifelse(!is.na(hh$age_m), hh$age_m +(hh$age_y*12), hh$age_y*12)
+roster$total_months <- ifelse(!is.na(roster$age_m), roster$age_m +(roster$age_y*12), roster$age_y*12)
 
 test <- with(
-  hh,
+  roster,
   anthro_zscores(
     sex = sex, age = total_months, is_age_in_month = TRUE, 
     weight = weight_kg, lenhei = height_cm
@@ -342,19 +461,156 @@ test <- with(
 )
 
 
-test$id_unique <- hh$id_unique
+test$id_unique <- roster$id_unique
 names(test)
 
 test %>% relocate(id_unique, .before = "clenhei") %>% 
   filter(!is.na(flen)) %>% 
-  left_join(., hh %>% select(age_m, age_y, age_group, height_cm, weight_kg, hhid_unique, id_unique)) %>% 
+  left_join(., roster %>% select(age_m, age_y, age_group, height_cm, weight_kg, hhid_unique, id_unique)) %>% 
   ggplot(aes(height_cm, fill = as.factor(flen))) + geom_histogram() +
   facet_wrap(~age_group)
   
 
 test %>% relocate(id_unique, .before = "clenhei") %>% 
   filter(!is.na(flen)) %>% 
-  left_join(., hh %>% select(age_m, age_y, age_group, height_cm, weight_kg, hhid_unique, id_unique)) %>% filter(flen == "1")
+  left_join(., roster %>% select(age_m, age_y, age_group, height_cm, weight_kg, hhid_unique, id_unique)) %>% filter(flen == "1")
   
+```
+
+## Household data
+
+
+```{r}
+
+
+grep("count", labelled::var_label(hh), ignore.case = TRUE, value = TRUE)
+
+unique(hh$county)
+
+names(hh)
+
+```
+
+### F&D Domain: apparent intakes
+
+
+```{r}
+
+# Indicators to be plotted (e.g. Energy)
+unique(data$Indicator)
+
+# Defining the three different palettes
+palette1 <- c("#edf8fb",  "#bfd3e6",  "#9ebcda",  "#8c96c6",  "#8c6bb1",  "#88419d",  "#6e016b")
+palette2 <- c("#edf8fb",  "#ccece6",  "#99d8c9",  "#66c2a4",  "#41ae76",  "#238b45",  "#005824")
+palette3 <- c("#f0f9e8",  "#ccebc5",  "#a8ddb5",  "#7bccc4",  "#4eb3d3",  "#2b8cbe",  "#08589e")
+
+palletiis <- list(palette1, palette2, palette3)
+
+#Storing the plots
+maps <- list()
+
+# Loop for generating the plots
+for(i in 1:length(unique(data$Indicator))){
+  
+component <- unique(data$Indicator)[i]
+component_title <- gsub("retinol activity equivalents", "RAE", unique(data$Indicator)[i])
+
+maps[[i]] <- data %>% 
+   left_join(., ken_admin2, by = c("Geographic.Level" = "county_name")) %>% 
+  # filter(is.na(geometry))
+  # class
+  filter(!is.na(CNTNAME3) & Indicator %in% component & Element == "Average") %>% 
+  st_as_sf() %>% 
+  tm_shape() +
+  tm_polygons(fill = "Value",
+               fill.scale = tm_scale_intervals(values = palletiis[[i]]),
+              fill_alpha = 0.5, 
+                fill.legend =  tm_legend(title = component_title)) +
+  tm_credits("Integrated Household Budget Survey, September 2015 - August 2016. Data from FAO F&D Domain", position = tm_pos_out("center", "bottom"))
+}
+
+
+
+```
+
+```{r}
+
+crop_map <- names(crop)[8:49]
+
+# No palm oil cultivation in KEN
+crop_var <- crop_map[3]
+crop_name <- crop_names$crop_name[crop_names$crop_short %in% gsub("_a", "", crop_var)]
+
+maps[[1]] +
+ tm_shape(crop %>% filter(!!sym(crop_var) >0)) +
+  tm_symbols( fill = crop_var, col = crop_var,  size = 0.6, fill_alpha = 0.6,
+              fill.scale = tm_scale_continuous(values = palette5), 
+              col.scale = tm_scale_continuous(values =  palette5), 
+              fill.legend = tm_legend(paste0(crop_name, " (kg/ha)")),
+              col.legend = tm_legend(show = FALSE))
+
+```
+
+
+
+## Kenya Countinous Household Survey programme 2022
+
+```{r}
+
+
+ken_admin2 <- ken_admin2 %>%
+  mutate(county_name = stringr::str_to_title(NAME2_), 
+         county_name = case_when(
+  county_name == "E. Marakwet" ~ "Elgeyo Marakwet", 
+  county_name == "Homa_bay" ~ "Homa Bay", 
+  county_name == "Muranga" ~ "Murang'a", 
+  county_name == "Nairobi" ~ "Nairobi", 
+  county_name == "Taita Taveta" ~ "Taita Taveta", 
+  county_name == "Nithi" ~ "Tharaka Nithi", 
+  county_name == "Trans-Nzoia" ~ "Trans Nzoia", 
+  .default = county_name))
+
+
+# Indicators to be plotted (e.g. Energy)
+unique(data$Indicator)
+
+# Defining the three different palettes
+palette1 <- c("#edf8fb",  "#bfd3e6",  "#9ebcda",  "#8c96c6",  "#8c6bb1",  "#88419d",  "#6e016b")
+palette2 <- c("#edf8fb",  "#ccece6",  "#99d8c9",  "#66c2a4",  "#41ae76",  "#238b45",  "#005824")
+palette3 <- c("#f0f9e8",  "#ccebc5",  "#a8ddb5",  "#7bccc4",  "#4eb3d3",  "#2b8cbe",  "#08589e")
+
+palletiis <- list(palette1, palette2, palette3)
+
+#Storing the plots
+maps <- list()
+
+# Loop for generating the plots
+for(i in 1:length(unique(data$Indicator))){
+  
+component <- unique(data$Indicator)[i]
+component_title <- gsub("retinol activity equivalents", "RAE", unique(data$Indicator)[i])
+
+#nutrient_sace %>%
+  survey_design %>% group_by(county_name) %>% 
+ # group_by(!!sym(var)) %>% 
+  summarise(across(starts_with("ame"),
+                          ~srvyr::survey_quantile(.x, c(0.25, 0.5, 0.75)))) %>% 
+  select(-ends_with("se")) %>%
+   left_join(., ken_admin2, by = c("county_name")) %>% 
+  # filter(is.na(geometry))
+  # class
+#  filter(!is.na(CNTNAME3) & Indicator %in% component & Element == "Average") %>% 
+  st_as_sf() %>% 
+  tm_shape() +
+  tm_polygons(fill = "ame_cons_energy_kcal_q50",
+               fill.scale = tm_scale_intervals(values = palette1),
+              fill_alpha = 0.5
+              #  fill.legend =  tm_legend(title = component_title)
+              ) +
+  tm_credits("Based on Kenya Countinous Household Survey programme 2022.", position = tm_pos_out("center", "bottom"))
+ 
+}
+
+
 ```
 

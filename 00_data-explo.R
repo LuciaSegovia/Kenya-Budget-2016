@@ -1,7 +1,7 @@
 
 
 
-#install.package("labelled") # Manunpulate stata files
+#install.package("labelled") # Manipulate stata files
 # https://mcroche.github.io/Labeling_in_R/chp-2.html
 
 # Loading libraries
@@ -9,10 +9,11 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 
-# Chekcing data files
+# Checking data files
 str(haven::read_dta(here::here("data", "2021", "KCHS-2021-individuals_microdata.dta")))
 str(haven::read_dta(here::here("data",  "HH_Information.dta")))
 str(haven::read_dta(here::here("data", "2021", "food_items_microdata.dta")))
+str(haven::read_dta(here::here("data", "food_items_microdata.dta")))
 str(haven::read_dta(here::here("data", "2021", "consagg_microdata.dta")))
 str(haven::read_dta(here::here("data", "2021", "nonfood_items_microdata.dta")))
 
@@ -62,7 +63,7 @@ mutate(bmi = weight_kg/((height_cm/100)^2),
   id_unique = paste(clid, hhid,lineNum, sep = "_")) %>% 
   relocate( c(hhid_unique,id_unique), .before = "clid")
 
-# Food consumption at HHs (7days)
+# Food consumption at HHs (7days) ----
 df <- haven::read_dta(here::here("data", "food.dta")) %>% 
   rename(
     purchased = "t04_qy", 
@@ -79,8 +80,21 @@ df <- haven::read_dta(here::here("data", "food.dta")) %>%
     cons_total = "t10_qy",
     cons_unit = "t10_su"
   )
+
+
+# Extracting the food name from the stata label
+df$food_name <- as.character(forcats::as_factor(df[["item_code"]]))
+
 # Best to explore the meaning of variables in stata dataset.
 str(df) 
+
+# Let's clean total consumption units:
+unique(df$cons_unit)
+
+df %>% filter(cons_unit %in% c(3, 4) & t03 == 1 ) %>% # Mililiter & liter
+  count(item_code, food_name) %>%  # View() 
+  write.csv(here::here("inter-outputs", "food-items-denisty_v0.0.0.csv"), 
+            row.names = FALSE)
 
 # Expenditure aggregate HHs
 haven::read_dta(here::here("data", "Consumption_aggregate.dta"))
@@ -111,10 +125,15 @@ library(tmap)
 
 crop <- st_read(here::here("data", "gis", "ke_crops_foodshare.shp"))
 market <- st_read(here::here("data", "gis", "ke_market_centers.shp"))
-head(market)
+aez <- st_read(here::here("data", "gis", "AEZs", "Agroecological_zones.shp"))
+
+head(aez)
 
 plot(crop[, "FOOD_SHARE"])
 plot(market[, "TOWN_TYPE"])
+plot(aez[, "ZONE_1"])
+
+summary(aez$ZONE_1)
 
 # Reading csv (lon(x)/lat(y))
 crop <- read.csv(here::here("data", "spam2017V2r1_SSA_Y_TA.csv")) %>% 
@@ -123,6 +142,7 @@ crop <- read.csv(here::here("data", "spam2017V2r1_SSA_Y_TA.csv")) %>%
 crop_names <- read.csv(here::here("data", "crop_names.csv")) 
 
 plot(crop[, "fs_name"])
+
 names(crop)
 
 tmap_mode("view")
@@ -142,7 +162,7 @@ crop_name <- crop_names$crop_name[crop_names$crop_short %in% gsub("_a", "", crop
     
 (test  <-   tm_shape(World %>% dplyr::filter(iso_a3 == "KEN"))+
   tm_borders(col = "grey8", lwd  =1.3) +
-tm_shape(crop %>% filter(!!sym(crop_var) >0))+
+tm_shape(crop %>% filter(!!sym(crop_var) >0)) +
   tm_symbols( fill = crop_var, col = crop_var,  size = 0.3, 
               fill.scale = tm_scale_continuous(values = palette1), 
               col.scale = tm_scale_continuous(values =  palette1), 
@@ -163,3 +183,76 @@ palette4 <- paletteer::paletteer_c("ggthemes::Red", 30)
 palette5 <- paletteer::paletteer_c("ggthemes::Red-Gold", 30)
 palette6 <- paletteer::paletteer_c("grDevices::PurpOr", 30, direction = -1)
 palette7<- paletteer::paletteer_c("grDevices::SunsetDark", 15, direction = -1)
+
+palletiis <- list(palette1, palette2, palette3)
+
+
+# Data dowloaded from
+# https://gaez.fao.org/pages/agromaps 
+
+# Data is quite old (90s) and only for very few crops
+data <- st_read(here::here("data", "gis", "KEN", "AgroMaps", "Africa", "shapefiles",
+                           "KEN", "admin1", "ken.shp"))
+
+head(data)
+
+plot(data[, "DCODE"])
+
+library(foreign)
+
+# Loading dbf 
+x<- read.dbf(here::here("data", "gis", "KEN", "AgroMaps", "Africa",
+                          "admin1_data", "KEN.DBF"), as.is = FALSE)
+
+str(x)
+
+unique(x$ITEM_CODE)
+
+# Maize = 56
+# 041 =	Data on Yield	Metric Tons per Hectar MT/Ha
+
+
+data %>% rename(NAME1 = "NAME1_" #, NAME2 = "NAME2_"
+                ) %>% 
+  left_join(., x %>% filter(ITEM_CODE == "56" & ELEMENT_CO == "041")) %>%
+  mutate(Data = ifelse(DATA < 0, NA, DATA*1000)) %>% #Convert into Kg/Ha 
+  tm_shape() +
+  tm_polygons(fill = "Data", fill_alpha = 0.4) +
+  tm_shape(crop %>% filter(!!sym(crop_var) >0))+
+  tm_symbols( fill = crop_var, col = crop_var,  size = 0.3, 
+              fill.scale = tm_scale_continuous(values = palette7), 
+              col.scale = tm_scale_continuous(values =  palette7), 
+              fill.legend = tm_legend(crop_name),
+              col.legend = tm_legend(show = FALSE)) +
+  tm_title(paste0("Yield of ", crop_name, " (kg/ha) in Kenya (data from 2017)"))  +
+  tm_basemap("OpenStreetMap")
+
+# Check this resource:
+#https://yieldgap-test.containers.wur.nl/Kenya
+
+# Here's the AEZ explained:
+#https://infonet-biovision.org/agro-ecological-zones/aezs-kenya-system
+
+
+
+# Explore the layers available 
+st_layers("data/gis/05_Educational_Centers_AGGREGATION_EPSG4326_2024_06_17_CEAT.gpkg")
+
+edu <- st_read("data/gis/05_Educational_Centers_AGGREGATION_EPSG4326_2024_06_17_CEAT.gpkg")
+
+edu <- edu %>% filter(iso3code == "KEN")
+
+head(edu)
+
+plot(edu[, "student_per_school"])
+hist(edu$student_per_school)
+summary(edu$student_per_school)
+
+tm_shape(edu) +
+  tm_symbols(size = "student_per_school", 
+             size.scale = tm_scale_intervals(values = c(0.3,0.5, 0.8, 1.2), # value.na = 0.1,
+                         breaks = c(1,150,300,450,600, 171945)), 
+             fill = "student_per_school",
+            fill.scale = tm_scale_intervals(values =palette7,  breaks = c(1,150,300,450,600, 171945)), 
+            size.legend = tm_legend_combine("fill")) +
+  tm_basemap("OpenStreetMap")
