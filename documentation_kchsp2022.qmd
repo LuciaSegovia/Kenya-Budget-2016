@@ -16,6 +16,10 @@ editor: Source
 **Assumption**:
 From the Kenya Continuous Household Survey Programme (KCHSP) 2021. Interviewers' Manual (KNBS, 2021). In litre : 401, 405, 406, 402, 404, 403, 407, 409, 411, 507, 905, 907, 1202, 1204, 1205, 1601, 1602, 1603, 1701, 1702, 1703, 1504, 1505.
 
+## Note on lactating women & Energy calculation function.
+
+The current function is wrongly adding the energy demands of the lactating mother to the babies (<=6mo). This has been partially fixed in the scritp, by trying to allocate the correct baby to the correct mother. However this assumption should be looked in more detail, and function updated if possible.
+
 
 ## Traditional Vegetables 
 
