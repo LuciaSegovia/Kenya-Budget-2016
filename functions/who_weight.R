@@ -85,7 +85,7 @@ A <- bind_rows(A_girls, A_boys, A_other)
   
 }
 
-fill_A <- weight_children(rand_df)
+#fill_A <- weight_children(rand_df)
 
 # fill_A %>% filter(age_y<10) %>% 
 #   dplyr::select(weight, months, sex, case_id) %>% View()

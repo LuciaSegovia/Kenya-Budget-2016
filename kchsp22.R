@@ -39,13 +39,15 @@ df <- data %>%
 # Amend food item = to coicop `NA` to . Based on COICOP legislation (see page 69)
 # https://unstats.un.org/unsd/classifications/unsdclassifications/COICOP_2018_pre_copy_edit_publication.pdf
 df$coicop[df$fooditem_code == 726] <- 7
-df$coicop_desc[df$fooditem_code == 726]
+# df$coicop_desc[df$fooditem_code == 726]
 
 # Extracting the food name from the stata label
 df$fooditem_name <- as.character(forcats::as_factor(df[["fooditem_code"]]))
 df$coicop_desc <- as.character(forcats::as_factor(df[["coicop"]]))
 df$residency <- as.character(forcats::as_factor(df[["resid"]]))
 df$county_name <- as.character(forcats::as_factor(df[["county"]]))
+# Creating a unique id for indiv. hh in cluster
+df$clhhid <-  paste0(df$clid,"_",  df$hhid)
 
 food_list <- df %>% filter(!is.na(cons_total)) %>%  group_by(across(starts_with("fooditem")), coicop, coicop_desc) %>% 
   count() %>% arrange(desc(n))
@@ -102,12 +104,13 @@ nct <- readxl::read_excel(here::here("data", "Kenya_NCT_JRC.xlsx")) %>%
   janitor::clean_names()
 names(nct)
 
+# Calculating the nutrient app. consumption per hh
 nutrient_summary <- df %>% left_join(., nct, by =c("fooditem_code" = "code")) %>% 
    #filter(is.na(edible_portion)) 
   mutate(cons_edible = total_cons_g_day*as.numeric(edible_portion)) %>% 
   mutate(across(names(nct)[c(4,12:23)], ~as.numeric(.)*cons_edible/100,
                 .names = "cons_{.col}")) %>% 
-  group_by(clhhid, county,county_name, resid, residency, adq_scale, hhsize) %>% 
+  group_by(clid, hhid, clhhid, county, county_name, resid, residency, adq_scale, hhsize) %>% 
   summarise(across(starts_with("cons_"), ~sum(.))) %>% select(-c( "cons_purch",                                                   
                                                                   "cons_stock" ,                                                  
                                                                   "cons_own",                                                     
@@ -144,11 +147,15 @@ hist(roster$age_m)
 unique(roster$sex)
 unique(roster$age_y)
 
-
-# Calculating the Energy requirements foe each HH member
+# Energy requirements ----
+# Calculating the Energy requirements for each HH member
 roster_test <-  Enerc_requirement(roster, pal = 1.6, weight.m = 65, weight.f = 55,
                                   lac = FALSE, preg = FALSE, at_home = FALSE)
 sum(is.na(roster_test$enerc_kcal))
+
+## Infants (< 23months)
+roster_test %>% filter(age_m <23 & age_y<=2) %>% arrange(clhhid) %>% 
+  select(clhhid, hhid_id, b03, sex, age_y, age_m)
 
 roster_test %>% # filter(age_y>6 & age_y<12) %>% 
   ggplot(aes(enerc_kcal, weight, colour = as.character(sex))) + geom_point()
@@ -178,22 +185,29 @@ names(roster_test)
 lac_hhid <-  roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m <= 6 & !roster_test$b03 %in% c(3, 4, 7)]
 lac_b03 <-  roster_test$b03[roster_test$age_y == 0 & roster_test$age_m <= 6 & !roster_test$b03 %in% c(3, 4, 7)]
 
+# Breastfeeding exclusive breastfeeding up to 5months was 60% (DHS, 2022). 
 roster_test <- roster_test %>% 
+  # Mother and son/daughter (household head)
   mutate(lac_women = ifelse(hhid_id %in% c(1, 2) & sex == 2, case_when(
-            clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 1 & roster_test$b03 ==3] ~ 2569/4.18,
-            clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 2 & roster_test$b03 ==3] ~ 2686/4.18,
-            clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 3 & roster_test$b03 ==3] ~ 2760/4.18,
-            clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 4 & roster_test$b03 ==3] ~ 2867/4.18,
-            clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 5 & roster_test$b03 ==3] ~ 2925/4.18,
-            clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 6 & roster_test$b03 ==3] ~ 3138/4.18), lac_women)) %>% 
-  mutate(lac_women = ifelse(hhid_id %in% c(3) & sex == 2, case_when(
+    clhhid %in% roster_test$clhhid[roster_test$age_y <  2 & roster_test$b03 ==3] ~ 500,
+    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 1 & roster_test$b03 ==3] ~ 2569/4.18,
+    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 2 & roster_test$b03 ==3] ~ 2686/4.18,
+    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 3 & roster_test$b03 ==3] ~ 2760/4.18,
+    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 4 & roster_test$b03 ==3] ~ 2867/4.18,
+    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 5 & roster_test$b03 ==3] ~ 2925/4.18,
+    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 6 & roster_test$b03 ==3] ~ 3138/4.18), NA)) %>% 
+  # Mother and son/daughter (daughter of household head)
+     mutate(lac_women = ifelse(hhid_id %in% c(3) & sex == 2, case_when(
+       clhhid %in% roster_test$clhhid[roster_test$age_y <  2 & roster_test$b03 ==4] ~ 500,
     clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 1 & roster_test$b03 ==4] ~ 2569/4.18,
     clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 2 & roster_test$b03 ==4] ~ 2686/4.18,
     clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 3 & roster_test$b03 ==4] ~ 2760/4.18,
     clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 4 & roster_test$b03 ==4] ~ 2867/4.18,
     clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 5 & roster_test$b03 ==4] ~ 2925/4.18,
     clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 6 & roster_test$b03 ==4] ~ 3138/4.18), lac_women)) %>%
-  mutate(lac_women = ifelse(hhid_id %in% c(5) & sex == 2, case_when(
+  # Mother and son/daughter (sister of household head)
+   mutate(lac_women = ifelse(hhid_id %in% c(5) & sex == 2, case_when(
+     clhhid %in% roster_test$clhhid[roster_test$age_y <  2 & roster_test$b03 ==7] ~ 500,
     clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 1 & roster_test$b03 ==7] ~ 2569/4.18,
     clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 2 & roster_test$b03 ==7] ~ 2686/4.18,
     clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 3 & roster_test$b03 ==7] ~ 2760/4.18,
@@ -203,8 +217,12 @@ roster_test <- roster_test %>%
  # filter(!is.na(lac_women)) %>% 
 #  select(hhid_id, b03, sex, lac_women ) %>% summary()
 
-hh_lac <-  roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m <= 6]
+#hh_lac <-  roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m <= 6]
+hh_lac <-  roster_test$clhhid[roster_test$age_y <2]
 hh_lac_wom <-  roster_test$clhhid[!is.na(roster_test$lac_women)]
+
+# There are 212 wit
+table(duplicated(hh_lac_wom)
 
 roster_test %>% filter(!clhhid %in% hh_lac_wom & clhhid %in% hh_lac)  %>% distinct(clhhid)
   
@@ -230,8 +248,6 @@ roster_sac <- roster_test %>% filter(clhhid %in% hh_sac) %>%
   summarise(clhhid, county, resid, weight_hh,  sace = sum(sace)) %>% distinct()
 
 sum(is.na(roster_sac$sace))
-
-df$clhhid <-  paste0(df$clid,"_",  df$hhid)
 
 df %>% left_join(., roster_sac) %>% 
   filter(!is.na(sace)) %>% select(adq_scale, sace, hhsize) %>% distinct() %>% 
@@ -259,4 +275,5 @@ library(srvyr) # survey design
 #ihs4_summary$region <- as.factor(ihs4_summary$region)
 survey_design <- nutrient_sace %>% ungroup() %>% 
   as_survey_design(strata = c(county, resid), weights = weight_hh)
+
 

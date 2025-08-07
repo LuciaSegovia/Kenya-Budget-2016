@@ -87,7 +87,7 @@ height_children <- function(A, male_values = c("male", "1"),
   
 }
 
-fill_A <- height_children(rand_df)
+#fill_A <- height_children(rand_df)
 
 ##
 
