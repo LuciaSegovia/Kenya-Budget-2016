@@ -9,6 +9,10 @@ editor: Source
 1. Roster information = individuals_microdata.dta
  - No info on pregnancy and/or lactating women 
  - No info on who's eating at home (days and/or meals)
+ - Variables starting from
+        - "d" seemed related to employment: d52 - how much you pay to go to work and d53 - how far Km is work
+        - "c" seemed related to education (attendance)
+        -
  
 2. Food consumption = food_items_microdata.dta
  - Info on food consumed provided in Kg/L (not specified)
@@ -19,6 +23,34 @@ From the Kenya Continuous Household Survey Programme (KCHSP) 2021. Interviewers'
 ## Note on lactating women & Energy calculation function.
 
 The current function is wrongly adding the energy demands of the lactating mother to the babies (<=6mo). This has been partially fixed in the scritp, by trying to allocate the correct baby to the correct mother. However this assumption should be looked in more detail, and function updated if possible.
+
+### Breastfeeding 
+
+#### Note: exclusive breastfeeding up to 5 months was 60% (DHS, 2022). 
+
+U.S. Department of Agriculture and U.S. Department of
+Health and Human Services. Dietary Guidelines for Americans, 2020-2025.
+9th Edition. December 2020. Available at DietaryGuidelines.gov. 
+
+### Pregnancy 
+
+Prevalence was 5.5% according to the latest DHS (2022) (See Table 5.2 Fertility by background characteristics). 
+
+### Infants breasfeeding practices
+
+Based on the latest DHS (2022, See Table 11.4 Breastfeeding status according to age).
+
+Exclusive breastfeeding
+0–1 months = 77.2%
+2–3 months = 60.8%
+4–5 months = 38.0%
+
+Continued breastfeeding
+12–15 months 85.1%  
+16–19 months 66.2%  
+20–23 months 42.7% 
+
+
 
 
 ## Traditional Vegetables 

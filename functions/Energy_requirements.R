@@ -1,10 +1,10 @@
 
 
-#' Calculate Energy Requirements Based on Age, Sex, and Activity
+#' Calculate Energy Requirements Based on Age, Sex, Weight and Physical Activity Levels (PAL)
 #'
 #' This function estimates energy requirements (in kcal) for individuals in a dataset
 #' based on age, sex, physical activity level (PAL), and weight. It uses WHO growth reference
-#' data for children and user-supplied adult weights. An optional adjustment is included for lactation.
+#' data for children and user-supplied adult weights. An optional adjustment is included for pregnancy & lactating mothers.
 #'
 #' @param df A data frame containing individual-level data. Must include columns: `age_y` (years), `age_m` (months, optional), `sex`, and optionally `weight`.
 #' @param male_values A character or numeric vector specifying the values used to identify males in the `sex` column. Default is `c("male", "1")`.
@@ -12,22 +12,21 @@
 #' @param weight.m Numeric value for average male adult weight (used if no weight is provided in `df`).
 #' @param weight.f Numeric value for average female adult weight (used if no weight is provided in `df`).
 #' @param pal Physical Activity Level (PAL) coefficient. Used in energy requirement calculations.
-#' @param lac Logical. If `TRUE` (default), energy requirements are increased for lactating individuals (bewteen 0 to 6 months).
+#' @param lac Logical. If `TRUE` (default), energy requirements are increased for lactating women.
 #' @param preg Logical. If `TRUE` (default), energy requirements are increased for pregnant individuals.
-#' @param at_home Logical. If `FALSE` (default), energy requirements are calculated for all HHs members, if `TRUE` members that reported not eating at home during the past 7days are excluded.
+#' @param prev.preg Numeric variable from 0 to 1. If `preg = TRUE` (default). It is the prevalence of pregnancy in a given context. 
 #'
 #' @return A modified version of the input data frame, with:
 #' - `months`: computed age in months.
 #' - `weight_final`: final weight used in energy calculations (from children’s growth reference or adult weight inputs).
-#' - `enerc_kcal`: estimated daily energy requirement in kilocalories.
+#' - `enerc_kcal`: estimated daily energy requirement in kilocalories (kcal).
 #'
 #' @details
 #' - The function uses the `weight_children()` function to calculate weight for children ≤10 years based on WHO growth standards.
 #' - If weight is missing for adults (>10 years), it uses `weight.m` or `weight.f` based on sex.
-#' - If `lac = TRUE`, it applies additional kcal needs for lactating children up to 6 months.
+#' - If `lac = TRUE`, it applies additional kcal needs for lactating women based on children below 24 months were based on US Guidelines 2020-2025.
 #' - If `preg = TRUE`, it applies additional kcal needs for pregnant women.
-#' - If `at_home = TRUE`, exclude HHs member not eating at home. 
-#' - Warnings are issued if any weights remain missing after processing.
+#' - Warnings are issued if any weights remain missing after processing, or if prev.preg is not provided when needed.
 #'
 #' @examples
 #' df <- data.frame(age_y = c(2, 25, 7), age_m = c(6, NA, NA),
@@ -47,9 +46,11 @@ source("functions/who_weight.R")
 
 Enerc_requirement <- function(df, male_values = c("male", "1"), 
                               female_values = c("female", "2"), 
-                              age, weight.m,weight.f, pal, 
-                              lac = TRUE, preg = TRUE, at_home = FALSE){
+                              age, weight.m, weight.f, pal, 
+                              lac = TRUE, preg = TRUE, prev.preg = NA){
 
+   # Function checks!
+  
   # Filling 'weight' if missing (<10 yo)
     df <- weight_children(df)  # Create a new 'weight' column if missing
     
@@ -59,6 +60,22 @@ Enerc_requirement <- function(df, male_values = c("male", "1"),
   # Ensure 'age' column exists
     if (!"age" %in% colnames(df)) {
       df$age <- df$age_y  # Create a new 'age' column if missing
+    }
+  
+  # Ensuring unique 'clhhid' (household id) is generated
+    if(!"clhhid" %in% colnames(df)){
+      
+      df$clhhid <- paste0(df$clid,"_",  df$hhid)
+    }
+    
+    # Ensure if preg = TRUE, 'pregnancy' column exists  
+    if(preg){
+      
+      if (!"pregnancy" %in% colnames(df) & is.na(prev.preg)) {
+        
+        stop(glue::glue("`preg = TRUE` but variable pregnancy is missing. 
+                        Please, check variable names or provide `prev.preg`"))
+      }
     }
     
  # Create final weight column
@@ -120,43 +137,93 @@ Enerc_requirement <- function(df, male_values = c("male", "1"),
       )
     
 
+
+    
 # Adding increase HH Energy req. based on lactation
 
 if(lac){
   
-  df <- df %>% mutate(
-    enerc_kcal = case_when(
-      months <=1 ~ enerc_kcal + 2569/4.18,
-      months ==2 ~ enerc_kcal + 2686/4.18,
-      months ==3 ~ enerc_kcal + 2760/4.18,
-      months ==4 ~ enerc_kcal + 2867/4.18,
-      months ==5 ~ enerc_kcal + 2925/4.18,
-      months ==6 ~ enerc_kcal + 3138/4.18, 
-      TRUE ~ enerc_kcal))
+  if ("lactating" %in% colnames(df)) {
+    
+    df <- df %>% 
+      mutate(lac_women = ifelse(lactating == 1, case_when(
+        clhhid %in% df$clhhid[df$months <= 6] ~ 330,
+        clhhid %in% df$clhhid[df$months < 6 & df$months < 24] ~ 400), NA))
+    
+  } else{
+    
+    if("relation_head" %in% colnames(df)){
   
-}  
+  df <- df %>% 
+    # Mother and son/daughter (household head or spouse)
+    mutate(lac_women = ifelse(hhid_id %in% c(1, 2) & sex == 2, case_when(
+      clhhid %in% df$clhhid[df$months <= 6 & df$relation_head ==3] ~ 330,
+      clhhid %in% df$clhhid[df$months < 6 & df$months < 24 & df$relation_head ==3] ~ 400), NA)) %>% 
+    # Mother and son/daughter (daughter and grandchild of household head)
+    mutate(lac_women = ifelse(hhid_id %in% c(3) & sex == 2, case_when(
+      clhhid %in% df$clhhid[df$months <= 6 & df$relation_head ==4] ~ 330,
+      clhhid %in% df$clhhid[df$months < 6 & df$months < 24 & df$relation_head ==4] ~ 400), lac_women)) %>% 
+    # Mother and son/daughter (sister and nephew/niece of household head)
+    mutate(lac_women = ifelse(hhid_id %in% c(5) & sex == 2, case_when(
+      clhhid %in% df$clhhid[df$months <= 6 & df$relation_head ==7] ~ 330,
+      clhhid %in% df$clhhid[df$months < 6 & df$months < 24 & df$relation_head ==7] ~ 400), lac_women)) %>% 
+    # In case incorrect labelling of the relationship to the head.
+    mutate(lac_women = ifelse(!is.na(lac_women) & (age_y <14 | age_y >45), NA, lac_women))
+  
+    }  else {
+  
+      df <- df %>% 
+        mutate(lac_women = case_when(
+          clhhid %in% df$clhhid[df$months <= 6] ~ 330,
+          clhhid %in% df$clhhid[df$months < 6 & df$months < 24] ~ 400), 
+          lac_women = ifelse(!is.na(lac_women) & (age_y <14 | age_y >45), NA, lac_women))
+    }
+    
+  }
+    
+}
     
  # Adding increase HH Energy req. based on pregnancy
     
     if(preg){
-      
+    
+      if ("pregnancy" %in% colnames(df)) {
+        
       df <- df %>% mutate(
         enerc_kcal = case_when(
          pregnancy == 1 ~ enerc_kcal + 77100/(9*30),
                     TRUE ~ enerc_kcal))
       
-    } 
+      } else {
 
-  # Excl. hh member that did not eat at home past 7 days
-    
-    if(at_home){
+      # No info on the database about women being pregnat hence, we need to use the country prevalence
       
-      df <- df %>% mutate(
-        enerc_kcal = case_when(
-          eat_home == "0" ~ NA,
-          TRUE ~ enerc_kcal))
+      # 1) Count N0 of Women in reproductive age (n)
+      n <- which(df$sex %in% c("female", "2") & df$age_y >14 &  df$age_y <45) 
       
-    } 
+      # 2) Generate a dummy variable with the pregnancy Y/N based on prevalence
+      set.seed(120)
+      preg_var <- paste0("preg_", prev.preg)
+      df[n, preg_var] <- rbinom(length(n), 1, prev.preg)
+      
+      # 3) Adding the extra energy for pregnancy based on 
+          df <- df %>% mutate(
+            enerc_kcal = case_when(
+             !!sym(preg_var) == 1 ~ enerc_kcal + 77100/(9*30),
+              TRUE ~ enerc_kcal))
+          
+      # 4) Log how many pregnant women were added
+          
+          pregnant_women_count <- df %>%
+            filter(!!sym(preg_var) == 1) %>%
+            nrow()
+          
+          message(glue::glue("{pregnant_women_count} pregnant women were added using {prev.preg} prevalence"))
+          
+      } 
+    }
+
+
     
 return(df)
 

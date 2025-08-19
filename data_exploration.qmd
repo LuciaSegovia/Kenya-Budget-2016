@@ -1,10 +1,54 @@
 ---
-title: "Untitled"
+title: "Deliverable X. Report on the framework to include School Feeding Programme contribution to inadequacy estimates when using Household Consumption and Expenditure Surveys."
 format: html
 editor: Source
 ---
 
-# Data sources
+# Introduction
+
+1.School Feeding programmes are the single most extensive social protection programe in the world covering more than 4M of children worldwide.
+
+2. HCES data provide good insides on micronutrient inadequacies at national and subnational levels when other dietary data are not available.
+
+3. One issue with HCES is accounting for the contribution of School Feeding (SF) which in some countries can reach high number of School Age Children (SAC). 
+
+
+# Methods
+
+1. Adaptation of AFE to SAC, steps 1.1 is common to any of the Household Allocation system (AME, AFE, etc). 
+
+1.1. Calculating the Energy requirements of all household members using the function `Enerc_requirements()`. This is based on the data provided in the roster. The information needed is: Age, Sex, and Weight. When weights are not provided, the weight are assumed as follow:
+
+0-10: WHO, P50. This assumption can be change in the function ``.
+10-18: WHO, P50. This assumption can be change in the function ``.
+18-+60: DHS, . This assumtion is country specific and should be provided by the user in the function ``.
+
+Additional energy requirement for pregnancy and lactating women are based on US Guidelines 2022-2025 (See @table 5-2).
+
+Table 5-2. Estimated Change in Calorie Needs During Pregnancy and Lactation for Women With a Healthy Prepregnancy Weight
+
+| Stage of Pregnancy or Lactation | Estimated Change in Daily Calorie Needs Compared to Prepregnancy Needs|
+|---|---|
+|Pregnancy: 1st trimester | + 0 calories |
+|Pregnancy: 2nd trimester | + 340 calories |
+|Pregnancy: 3rd trimester | + 452 calories |
+|Lactation: 1st 6 months | + 330 caloriesb |
+|Lactation: 2nd 6 months | + 400 caloriesc |
+
+
+1.2. Adaptation of the Energy requirement based on who's eating and the proportion of food eaten using the funcion `Enerc_adjustements()`. Here, the most important is the reduced contribution due to breasfeeding.
+
+1. Exclusive breastfeeding [0-4 months] = 0 kcal.
+2. Non-Exclusive breastfeeding [4-23 months] = - kcal
+3. Non-xclusive
+
+We considered up to 3months exclusive breastfeeding even it is not true, due to the very small quantities that the energy contribution from the whole household. 
+
+
+cbind(c(3:12), c(568,636,574,634,714,611,688,635,516,565))
+
+
+## Data sources
 
 There are few household surveys in Kenya wit good food item information. However, the most recent is smaller in number of households, and it also provided less information regarding the school feeding. 
 

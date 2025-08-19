@@ -63,6 +63,12 @@ mutate(bmi = weight_kg/((height_cm/100)^2),
   id_unique = paste(clid, hhid,lineNum, sep = "_")) %>% 
   relocate( c(hhid_unique,id_unique), .before = "clid")
 
+
+# No of pregnancy reported
+n <- hh$hhid_unique[(!is.na(hh$sickness1) & hh$sickness1 == 26) | (!is.na(hh$sickness2) & hh$sickness2 == 26)]
+
+length(n)/length(unique(hh$hhid_unique))*100
+
 # Food consumption at HHs (7days) ----
 df <- haven::read_dta(here::here("data", "food.dta")) %>% 
   rename(

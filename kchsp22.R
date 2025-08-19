@@ -147,10 +147,34 @@ hist(roster$age_m)
 unique(roster$sex)
 unique(roster$age_y)
 
-# Energy requirements ----
+## 1) Energy requirements ----
 # Calculating the Energy requirements for each HH member
-roster_test <-  Enerc_requirement(roster, pal = 1.6, weight.m = 65, weight.f = 55,
-                                  lac = FALSE, preg = FALSE, at_home = FALSE)
+roster_test3 <-  Enerc_requirement(roster, pal = 1.6, weight.m = 65, weight.f = 55,
+                                  lac = TRUE, preg = TRUE, prev.preg = 0.05)
+
+# Checking lactating
+# Mothers who are HH head or spouse
+roster_test2 %>% filter(is.na(lac_women) & age <45 & b03 %in% c("1", "2")) %>% 
+  select(hhid_id, clhhid, age, b03, lac_women) 
+
+# Checking pregnancy
+roster_test3 %>% select(starts_with("preg"), age_y, sex, enerc_kcal) %>% 
+  filter(age_y == 30) %>% distinct()
+roster_test3 %>% filter(preg_0.05 == 1) %>% count()
+
+id_check <- roster_test1 %>% filter(!is.na(lac_women) & age >45 & b03 %in% c("1", "2")) %>% 
+  distinct(clhhid) %>% pull()
+
+roster_test1 %>% filter(clhhid %in% id_check)
+
+roster_test1 %>% names()
+
+## 2) Energy adjustment for HH food allocation. 
+
+
+roster_test2 %>% filter(months <= 6) %>% 
+  select(months, age_y, enerc_kcal) %>% unique()
+
 sum(is.na(roster_test$enerc_kcal))
 
 ## Infants (< 23months)
@@ -222,7 +246,7 @@ hh_lac <-  roster_test$clhhid[roster_test$age_y <2]
 hh_lac_wom <-  roster_test$clhhid[!is.na(roster_test$lac_women)]
 
 # There are 212 wit
-table(duplicated(hh_lac_wom)
+table(duplicated(hh_lac_wom))
 
 roster_test %>% filter(!clhhid %in% hh_lac_wom & clhhid %in% hh_lac)  %>% distinct(clhhid)
   
