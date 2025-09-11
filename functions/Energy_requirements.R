@@ -2,6 +2,10 @@
 
 #' Calculate Energy Requirements Based on Age, Sex, Weight and Physical Activity Levels (PAL)
 #'
+#'
+#' Version 1.0.0 
+#' Update date: 2025.09.11
+#' 
 #' This function estimates energy requirements (in kcal) for individuals in a dataset
 #' based on age, sex, physical activity level (PAL), and weight. It uses WHO growth reference
 #' data for children and user-supplied adult weights. An optional adjustment is included for pregnancy & lactating mothers.
