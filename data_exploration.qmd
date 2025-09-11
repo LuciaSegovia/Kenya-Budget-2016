@@ -36,16 +36,16 @@ Table 5-2. Estimated Change in Calorie Needs During Pregnancy and Lactation for 
 |Lactation: 2nd 6 months | + 400 caloriesc |
 
 
-1.2. Adaptation of the Energy requirement based on who's eating and the proportion of food eaten using the funcion `Enerc_adjustements()`. Here, the most important is the reduced contribution due to breasfeeding.
+1.2. Adaptation of the Energy requirement based on who's eating and the proportion of food eaten using the funcion `Enerc_adjustments()`. Here, the most important is the reduced contribution due to breasfeeding.
 
-1. Exclusive breastfeeding [0-4 months] = 0 kcal.
-2. Non-Exclusive breastfeeding [4-23 months] = - kcal
-3. Non-xclusive
+1. Exclusive breastfeeding [0-3 months] = 0 kcal
+2. Non-Exclusive breastfeeding [4-23 months] = -(380-478) kcal
+
+Then, we need to adjust the probablity of being breastfed (BF) based on each country.
 
 We considered up to 3months exclusive breastfeeding even it is not true, due to the very small quantities that the energy contribution from the whole household. 
 
-
-cbind(c(3:12), c(568,636,574,634,714,611,688,635,516,565))
+We used information on DHS, 2022. 
 
 
 ## Data sources
