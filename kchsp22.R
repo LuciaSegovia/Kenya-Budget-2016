@@ -121,7 +121,7 @@ nutrient_summary <- df %>% left_join(., nct, by =c("fooditem_code" = "code")) %>
 
 str(roster)
 roster <- roster %>% 
-  rename(sex = "b04", age_y = "b05_years", 
+  rename(sex = "b04", age_y = "b05_years", relation_head = "b03", 
          age_m = "b05_months", dob_year = "b06_yrs") 
 
 # Id variables
@@ -149,7 +149,7 @@ unique(roster$age_y)
 
 ## 1) Energy requirements ----
 # Calculating the Energy requirements for each HH member
-roster_test3 <-  Enerc_requirement(roster, pal = 1.6, weight.m = 65, weight.f = 55,
+roster_test3 <-  Enerc_requirement(roster %>% select(-relation_head), pal = 1.6, weight.m = 65, weight.f = 55,
                                   lac = TRUE, preg = TRUE, prev.preg = 0.05)
 
 # Checking lactating

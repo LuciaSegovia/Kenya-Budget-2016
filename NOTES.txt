@@ -1,6 +1,7 @@
 
 
 - Check the following assumption:
+
 1. If a school meal provides the coverage of X% of Y nutrient (e.g. 32% of B12), then:
 If one SAC represent Z% of the AFE (eg. 0.08 of 1AFE), then the school meals contribute to increase the app. intake of B12 0.026%.
 

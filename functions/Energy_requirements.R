@@ -20,6 +20,7 @@
 #' - `months`: computed age in months.
 #' - `weight_final`: final weight used in energy calculations (from children’s growth reference or adult weight inputs).
 #' - `enerc_kcal`: estimated daily energy requirement in kilocalories (kcal).
+#' - `lac_women`: estimated extra daily energy requirement in kilocalories (kcal) due to lactation.
 #'
 #' @details
 #' - The function uses the `weight_children()` function to calculate weight for children ≤10 years based on WHO growth standards.
@@ -139,14 +140,14 @@ Enerc_requirement <- function(df, male_values = c("male", "1"),
 
 
     
-# Adding increase HH Energy req. based on lactation
+# Adding increase Women Energy req. based on lactation
 
 if(lac){
   
   if ("lactating" %in% colnames(df)) {
     
     df <- df %>% 
-      mutate(lac_women = ifelse(lactating == 1, case_when(
+      mutate(lac_women = ifelse(lactating %in% c("1", "Y", "yes", "Yes"), case_when(
         clhhid %in% df$clhhid[df$months <= 6] ~ 330,
         clhhid %in% df$clhhid[df$months < 6 & df$months < 24] ~ 400), NA))
     
@@ -167,8 +168,16 @@ if(lac){
     mutate(lac_women = ifelse(hhid_id %in% c(5) & sex == 2, case_when(
       clhhid %in% df$clhhid[df$months <= 6 & df$relation_head ==7] ~ 330,
       clhhid %in% df$clhhid[df$months < 6 & df$months < 24 & df$relation_head ==7] ~ 400), lac_women)) %>% 
-    # In case incorrect labelling of the relationship to the head.
+    # In case incorrect labeling of the relationship to the head.
     mutate(lac_women = ifelse(!is.na(lac_women) & (age_y <14 | age_y >45), NA, lac_women))
+  
+  # Log how many lactating women were added
+  
+  lactating_women_prop <- df %>%
+    filter(!is.na(lac_women)) %>%
+    nrow()/length(df$clhhid[df$sex == 2 & df$age_y>14 | df$age_y <45])*100 
+  
+  message(glue::glue("The percentage of lactating women were {round(lactating_women_prop, 2)} by relation_head"))
   
     }  else {
   
@@ -176,10 +185,24 @@ if(lac){
         mutate(lac_women = case_when(
           clhhid %in% df$clhhid[df$months <= 6] ~ 330,
           clhhid %in% df$clhhid[df$months < 6 & df$months < 24] ~ 400), 
-          lac_women = ifelse(!is.na(lac_women) & (age_y <14 | age_y >45), NA, lac_women))
+          lac_women = ifelse(!is.na(lac_women) & (age_y <14 | age_y >45 | sex == 1), NA, lac_women))
+      
+      # Log how many lactating women were added
+      
+      lactating_women_prop <- df %>%
+        filter(!is.na(lac_women)) %>%
+        nrow()/length(df$clhhid[df$sex == 2 & df$age_y>14 | df$age_y <45])*100 %>% round(., 2)
+      
+      message(glue::glue("The percentage of lactating women were {round(lactating_women_prop, 2)} by infants <24months"))
+      
     }
-    
+  
+      
   }
+  
+  # Summing the energy needs from lactation
+  df <- df %>% 
+    mutate(enerc_kcal = enerc_kcal + lac_women)
     
 }
     
