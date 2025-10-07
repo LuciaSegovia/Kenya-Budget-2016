@@ -1,0 +1,38 @@
+
+# Methods
+
+
+
+## Calulating Energy requirements of household members
+
+The information needed for calculating the Energy requirement of each household member are: age, sex, weight, and pregnancy/lactation. Often weight, pregnancy and lactation are not available. These variables are then calculated and/or assumed based on information from other sources, e.g. Demographic and Health Surveys (DHS).
+
+Here, it is calculated using a function .
+
+## Adjusting the Energy requirments to food allocation
+
+Some adjustment are needed when using the energy requirements to allocate the food consumed at the household level, for example, if an infant is exclusive breastfed, no food will be given to them, hence we will adjust their energy needs to zero. In other words, there will be no food allocated to the infant. Similarly, there are other cases when the food allocation (based on the energy) would need to be modifed, for instance, if children receive food at the school (Borlizzi et al, 2017).
+
+::: {.callout-important}
+## Note on assumptions
+
+Summary of the main function assumptions/ decisions:
+
+- **Exclusive breasfeeding**: Assumed that only infants of <= 3months where exclusive breasfed.
+- **Complementary breasfeeding (6-11months)**: Assumed for all infants up to 11months.
+- **Complementary breasfeeding (12-24months)**: Breasfed adjusted for 60% prevalence.
+- **School age children**: Assumed to be in primary school age 6-13years old.
+- **School feeding**: By school attendance, assumed for all attending school and age 6-13years old. If `NA` assumed not receiving school feeding.
+- **School feeding**: Only if attending this year (not considering last year).
+
+
+:::
+
+This is also calculated using a function. Like in the other function, some of this modules can be used or not based on the information available and/or the country context. 
+
+
+
+## Calculating your household allocation based on your population of interest
+
+
+

@@ -25,6 +25,7 @@
 #' - `weight_final`: final weight used in energy calculations (from children’s growth reference or adult weight inputs).
 #' - `enerc_kcal`: estimated daily energy requirement in kilocalories (kcal).
 #' - `lac_women`: estimated extra daily energy requirement in kilocalories (kcal) due to lactation.
+#' - `preg_[prev]`: If `preg = TRUE`, and no information is provided on pregancy status, it is estimated extra daily energy requirement in kilocalories (kcal) due to pregnacy based on given prevalence. 
 #'
 #' @details
 #' - The function uses the `weight_children()` function to calculate weight for children ≤10 years based on WHO growth standards.
@@ -135,9 +136,7 @@ Enerc_requirement <- function(df, male_values = c("male", "1"),
           sex %in% female_values & age >= 10 & age < 18 ~ (13.384 * weight_final + 692.6) * pal,
           sex %in% female_values & age >= 18 & age < 30 ~ (14.818 * weight_final + 486.6) * pal,
           sex %in% female_values & age >= 30 & age < 60 ~ (8.126 * weight_final + 845.6) * pal,
-          sex %in% female_values & age >= 60 ~ (9.082 * weight_final + 658.5) * pal,
-          
-          TRUE ~ NA
+          sex %in% female_values & age >= 60 ~ (9.082 * weight_final + 658.5) * pal
         )
       )
     
@@ -151,9 +150,10 @@ if(lac){
   if ("lactating" %in% colnames(df)) {
     
     df <- df %>% 
-      mutate(lac_women = ifelse(lactating %in% c("1", "Y", "yes", "Yes"), case_when(
+      mutate(lac_women = ifelse(lactating %in% c("1", "Y", "yes", "Yes"),
+        case_when(
         clhhid %in% df$clhhid[df$months <= 6] ~ 330,
-        clhhid %in% df$clhhid[df$months < 6 & df$months < 24] ~ 400), NA))
+        clhhid %in% df$clhhid[df$months > 6 & df$months < 24] ~ 400), NA))
     
   } else{
     
@@ -163,15 +163,15 @@ if(lac){
     # Mother and son/daughter (household head or spouse)
     mutate(lac_women = ifelse(hhid_id %in% c(1, 2) & sex == 2, case_when(
       clhhid %in% df$clhhid[df$months <= 6 & df$relation_head ==3] ~ 330,
-      clhhid %in% df$clhhid[df$months < 6 & df$months < 24 & df$relation_head ==3] ~ 400), NA)) %>% 
+      clhhid %in% df$clhhid[df$months > 6 & df$months < 24 & df$relation_head == 3] ~ 400), NA)) %>% 
     # Mother and son/daughter (daughter and grandchild of household head)
     mutate(lac_women = ifelse(hhid_id %in% c(3) & sex == 2, case_when(
       clhhid %in% df$clhhid[df$months <= 6 & df$relation_head ==4] ~ 330,
-      clhhid %in% df$clhhid[df$months < 6 & df$months < 24 & df$relation_head ==4] ~ 400), lac_women)) %>% 
+      clhhid %in% df$clhhid[df$months > 6 & df$months < 24 & df$relation_head == 4] ~ 400), lac_women)) %>% 
     # Mother and son/daughter (sister and nephew/niece of household head)
     mutate(lac_women = ifelse(hhid_id %in% c(5) & sex == 2, case_when(
       clhhid %in% df$clhhid[df$months <= 6 & df$relation_head ==7] ~ 330,
-      clhhid %in% df$clhhid[df$months < 6 & df$months < 24 & df$relation_head ==7] ~ 400), lac_women)) %>% 
+      clhhid %in% df$clhhid[df$months > 6 & df$months < 24 & df$relation_head == 7] ~ 400), lac_women)) %>% 
     # In case incorrect labeling of the relationship to the head.
     mutate(lac_women = ifelse(!is.na(lac_women) & (age_y <14 | age_y >45), NA, lac_women))
   
@@ -188,7 +188,7 @@ if(lac){
       df <- df %>% 
         mutate(lac_women = case_when(
           clhhid %in% df$clhhid[df$months <= 6] ~ 330,
-          clhhid %in% df$clhhid[df$months < 6 & df$months < 24] ~ 400), 
+          clhhid %in% df$clhhid[df$months > 6 & df$months < 24] ~ 400), 
           lac_women = ifelse(!is.na(lac_women) & (age_y <14 | age_y >45 | sex == 1), NA, lac_women))
       
       # Log how many lactating women were added
@@ -206,7 +206,7 @@ if(lac){
   
   # Summing the energy needs from lactation
   df <- df %>% 
-    mutate(enerc_kcal = enerc_kcal + lac_women)
+    mutate(enerc_kcal = rowSums(across(c(enerc_kcal, lac_women)), na.rm = TRUE))
     
 }
     
@@ -223,7 +223,7 @@ if(lac){
       
       } else {
 
-      # No info on the database about women being pregnat hence, we need to use the country prevalence
+      # No info on the database about women being pregnant hence, we need to use the country prevalence
       
       # 1) Count N0 of Women in reproductive age (n)
       n <- which(df$sex %in% c("female", "2") & df$age_y >14 &  df$age_y <45) 

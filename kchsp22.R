@@ -203,97 +203,9 @@ roster_test2 %>% filter(age_y >= 6 & age_y <= 13) %>%
   select(months, age_y, enerc_kcal, enerc_kcal_school, school_attend, school_feeding, c05,
        enerc_kcal_feeding, exp_feed, expendi_feeding) %>% unique() %>%  View()
 
-
 sum(is.na(roster_test$enerc_kcal))
 
-## Infants (< 23months)
-roster_test %>% filter(age_m <23 & age_y<=2) %>% arrange(clhhid) %>% 
-  select(clhhid, hhid_id, b03, sex, age_y, age_m)
-
-roster_test %>% # filter(age_y>6 & age_y<12) %>% 
-  ggplot(aes(enerc_kcal, weight, colour = as.character(sex))) + geom_point()
-
-roster_test %>% # filter(age_y>6 & age_y<12) %>% 
-  ggplot(aes(enerc_kcal, colour = as.character(sex))) + geom_histogram()
-
-
-roster_test %>% filter(enerc_kcal <1000) %>% 
-  ggplot(aes(as.character(age_y), enerc_kcal)) + geom_boxplot()
-
-roster_test %>% filter(age_y ==0 &age_m<=6) %>% 
-  ggplot(aes(enerc_kcal)) + geom_histogram()
-
-
-roster_test %>% filter(age_y ==0 &age_m<=6) %>% 
-  count(b03)
-
-roster_test %>% filter(age_y ==0 &age_m<=6) %>% 
-  filter(b03==3) %>% select(hhid, hhid_id)
-
-roster_test$hhid[roster_test$age_y == 0 & roster_test$age_m <= 6]
-
-roster_test$hhid_id[roster_test$hhid %in% roster_test$hhid[roster_test$age_y == 0 & roster_test$age_m <= 6]]
-names(roster_test)
-
-lac_hhid <-  roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m <= 6 & !roster_test$b03 %in% c(3, 4, 7)]
-lac_b03 <-  roster_test$b03[roster_test$age_y == 0 & roster_test$age_m <= 6 & !roster_test$b03 %in% c(3, 4, 7)]
-
-# Breastfeeding exclusive breastfeeding up to 5months was 60% (DHS, 2022). 
-roster_test <- roster_test %>% 
-  # Mother and son/daughter (household head)
-  mutate(lac_women = ifelse(hhid_id %in% c(1, 2) & sex == 2, case_when(
-    clhhid %in% roster_test$clhhid[roster_test$age_y <  2 & roster_test$b03 ==3] ~ 500,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 1 & roster_test$b03 ==3] ~ 2569/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 2 & roster_test$b03 ==3] ~ 2686/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 3 & roster_test$b03 ==3] ~ 2760/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 4 & roster_test$b03 ==3] ~ 2867/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 5 & roster_test$b03 ==3] ~ 2925/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 6 & roster_test$b03 ==3] ~ 3138/4.18), NA)) %>% 
-  # Mother and son/daughter (daughter of household head)
-     mutate(lac_women = ifelse(hhid_id %in% c(3) & sex == 2, case_when(
-       clhhid %in% roster_test$clhhid[roster_test$age_y <  2 & roster_test$b03 ==4] ~ 500,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 1 & roster_test$b03 ==4] ~ 2569/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 2 & roster_test$b03 ==4] ~ 2686/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 3 & roster_test$b03 ==4] ~ 2760/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 4 & roster_test$b03 ==4] ~ 2867/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 5 & roster_test$b03 ==4] ~ 2925/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 6 & roster_test$b03 ==4] ~ 3138/4.18), lac_women)) %>%
-  # Mother and son/daughter (sister of household head)
-   mutate(lac_women = ifelse(hhid_id %in% c(5) & sex == 2, case_when(
-     clhhid %in% roster_test$clhhid[roster_test$age_y <  2 & roster_test$b03 ==7] ~ 500,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 1 & roster_test$b03 ==7] ~ 2569/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 2 & roster_test$b03 ==7] ~ 2686/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 3 & roster_test$b03 ==7] ~ 2760/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 4 & roster_test$b03 ==7] ~ 2867/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 5 & roster_test$b03 ==7] ~ 2925/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 6 & roster_test$b03 ==7] ~ 3138/4.18), lac_women)) #%>% 
- # filter(!is.na(lac_women)) %>% 
-#  select(hhid_id, b03, sex, lac_women ) %>% summary()
-
-#hh_lac <-  roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m <= 6]
-hh_lac <-  roster_test$clhhid[roster_test$age_y <2]
-hh_lac_wom <-  roster_test$clhhid[!is.na(roster_test$lac_women)]
-
-# There are 212 wit
-table(duplicated(hh_lac_wom))
-
-roster_test %>% filter(!clhhid %in% hh_lac_wom & clhhid %in% hh_lac)  %>% distinct(clhhid)
-  
-roster_test %>% filter(!hhid_id %in% c(1,2,3,5) & sex == 2 & 
-                         clhhid %in% lac_hhid & age_y>15 & age_y<49) %>%
-  arrange(desc(clhhid)) %>% View()
-
-hh_sac <- roster_test$clhhid[roster_test$age_y>=6 & roster_test$age_y<= 12]
-
-
-roster_test2 %>% filter(clhhid %in% hh_sac) %>% 
-  ggplot(aes(enerc_kcal, age_y, colour = as.character(sex))) + geom_point()
-
-## Selecting the reference
-years <- 10
-S <- 2
-(Energy_sac <- unique(roster_test$enerc_kcal[roster_test$age == years & roster_test$sex == S & !is.na(roster_test$enerc_kcal)]))
-
+# Selecting the reference (women)
 years <- 25
 S <- 2
 (Energy_afe <- unique(roster_test$enerc_kcal[roster_test$age == years & roster_test$sex == S & is.na(roster_test$lac_women) & roster_test$preg_0.05 == 0]))
@@ -345,6 +257,18 @@ survey_design %>%
   geom_boxplot() +
   coord_flip()
 
+
+### Calculating for School age children -----
+
+hh_sac <- roster_test$clhhid[roster_test$age_y>=6 & roster_test$age_y<= 12]
+
+roster_test2 %>% filter(clhhid %in% hh_sac) %>% 
+  ggplot(aes(enerc_kcal, age_y, colour = as.character(sex))) + geom_point()
+
+## Selecting the reference
+years <- 10
+S <- 2
+(Energy_sac <- unique(roster_test$enerc_kcal[roster_test$age == years & roster_test$sex == S & !is.na(roster_test$enerc_kcal)]))
 
 # Calculating SACE
 roster_sac <- roster_test2 %>% filter(clhhid %in% hh_sac) %>% 
