@@ -91,6 +91,9 @@ There are three options:
 2. The lactating women is assumed based on having a lactating child base on mother and child relation to the head of the household (e.g. info is provided to relationship , eg. mother/spouse and son/daughter, daughter and grandchild).
 3. The lactating women is assumed based on one child at the household is < 24months of age.
 
+## School Meals
+
+195days of school 
 
 ## Traditional Vegetables 
 

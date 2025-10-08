@@ -104,10 +104,23 @@ nct <- readxl::read_excel(here::here("data", "Kenya_NCT_JRC.xlsx")) %>%
   janitor::clean_names()
 names(nct)
 
+## Outliers
+
+hist(nutrient_summary$cons_edible/nutrient_summary$adq_scale)
+
+outliers <- df %>% left_join(., nct, by =c("fooditem_code" = "code")) %>% 
+  #filter(is.na(edible_portion)) 
+  mutate(cons_edible = total_cons_g_day*as.numeric(edible_portion))  %>% 
+  group_by(fooditem_code) %>% 
+#  summarise(across(cons_edible, ~mean(.)))
+  summarise(across(cons_edible, ~quantile(., 0.75), .names = "outliers")) 
+
 # Calculating the nutrient app. consumption per hh
 nutrient_summary <- df %>% left_join(., nct, by =c("fooditem_code" = "code")) %>% 
-   #filter(is.na(edible_portion)) 
+  #filter(is.na(edible_portion)) 
   mutate(cons_edible = total_cons_g_day*as.numeric(edible_portion)) %>% 
+  left_join(., outliers) %>% 
+  mutate(cons_edible = ifelse(cons_edible > outliers, outliers, cons_edible)) %>% 
   mutate(across(names(nct)[c(4,12:23)], ~as.numeric(.)*cons_edible/100,
                 .names = "cons_{.col}")) %>% 
   group_by(clid, hhid, clhhid, county, county_name, resid, residency, adq_scale, hhsize) %>% 
@@ -116,6 +129,7 @@ nutrient_summary <- df %>% left_join(., nct, by =c("fooditem_code" = "code")) %>
                                                                   "cons_own",                                                     
                                                                   "cons_gift",                                                    
                                                                   "cons_total" ))
+
 
 ## Roster: Calculating Energy requirements for HHs members ----
 
@@ -134,7 +148,9 @@ sum(duplicated(roster$interview__id)) # same as cluster
 sum(duplicated(paste0(roster$clid,"_",  roster$hhid)))
 sum(duplicated(paste0(roster$clid,"_",  roster$hhid, "_", roster$hhid_id)))
 
+# Household unique ID
 roster$clhhid <- paste0(roster$clid,"_",  roster$hhid)
+# HH member unique ID
 roster$uniqueid <- paste0(roster$clid,"_",  roster$hhid, "_", roster$hhid_id)
 
 
