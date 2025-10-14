@@ -1,18 +1,17 @@
 
-#' Adjust Energy Requirements based on lactation and other factors
+#' Calculate Adjustment to the Energy Requirements Based on Food Intakes different from the Household
 #'
-#' This function estimates energy intakes/ needs (in kcal) for individuals in a datasets
-#' based on age, sex, breasfeeding and others. It uses WHO growth reference
-#' An optional adjustment is included for lactation.
 #'
-#' @param df A data frame containing individual-level data. Must include columns: `age_y` (years), `age_m` (months, optional), `sex`, and optionally `weight`.
-#' @param male_values A character or numeric vector specifying the values used to identify males in the `sex` column. Default is `c("male", "1")`.
-#' @param female_values A character or numeric vector specifying the values used to identify females in the `sex` column. Default is `c("female", "2")`.
-#' @param weight.m Numeric value for average male adult weight (used if no weight is provided in `df`).
-#' @param weight.f Numeric value for average female adult weight (used if no weight is provided in `df`).
-#' @param pal Physical Activity Level (PAL) coefficient. Used in energy requirement calculations.
+#' Version 1.0.0 
+#' Update date: 2025.10.13
+#' 
+#'
+#' This function adjust the energy intakes/ needs (in kcal) for individuals in a dataset
+#' based on factors that potentially reduce/ modify their household consumption.
+#' 
+#' @param df A data frame containing individual-level data. Must include columns: `enerc_kcal` (energy in kcal), `age_y` (years), `age_m` (months, optional), `sex`.
 #' @param excl.lact Logical. If `TRUE` (default), energy requirements are removed (between 0 to 6 months, context specific).
-#' @param lac Logical. If `TRUE` (default), energy requirements are increased for lactating individuals (between 0 to 6 months).
+#' @param school Logical. If `TRUE` (default), energy requirements are decreased for School Age Children (6-13yo) based on the energy provided by school meals (`meal_kcal`) and the school days (`school_days`).
 #' @param preg Logical. If `TRUE` (default), energy requirements are increased for pregnant individuals.
 #' @param at_home Logical. If `FALSE` (default), energy requirements are calculated for all HHs members, if `TRUE` members that reported not eating at home during the past 7days are excluded.
 #'
@@ -49,10 +48,17 @@ Enerc_adjustment <- function(df,
                              excl.bf = TRUE, excl.age = 6, 
                              comple.bf = TRUE, prev.complebf = 0.60,
                              school = TRUE, #grade = NA,
-                             feeding = TRUE, meal_kcal = 629,
+                             feeding = TRUE, meal_kcal = 629, school_days = 139,
                              at_home = FALSE){
 
-  # Ensure exclusive lactation age is correct
+  
+  # Ensure the column `enerc_kcal` (Energy in kcal) exists  
+   if (!"enerc_kcal" %in% colnames(df)) {
+      
+      stop(glue::glue("`enerc_kcal` is missing. Please run `Energy_requirement` first."))
+    }
+  
+   # Ensure exclusive lactation age is correct
   
   if(excl.age>6){
     stop(glue::glue("excl.age is set to {excl.age}, but it can't be higher than 6 months."))
@@ -64,15 +70,48 @@ Enerc_adjustment <- function(df,
     
     if(!any(c("exp_feed", "school_feed") %in% colnames(df))) {
       
-      stop(glue::glue("`feeding = TRUE` but school feeding variable is missing. 
-                        Please, check variable names (exp_feed or school_feed)"))
+      stop(glue::glue("`feeding = TRUE` but school feeding variable (`exp_feed` or `school_feed`) is missing. 
+                        Please, check variable names."))
       
     }
  #    if(school){stop(glue::glue("`feeding = TRUE` & `school = TRUE`,
   #                              you need to select one option")) }
+     
+     # Checking columns
+     if(!"school_attend" %in% colnames(df)) {
+       
+       stop(glue::glue("`feeding = TRUE` but school attendance variable (`school_attend`) is missing. 
+                        Please, check variable names."))
+       
      }
+     
+     # Info on data on school meal calculations
+          meal_kcal <- meal_kcal*school_days/365
+     
+   message(glue::glue("The school meal contributed {meal_kcal} kcal/day for SAC."))
   
-# 1) Excluding breast milk contribution towards energy intakes in infants
+     
+   }
+  
+  if(school){
+    
+  # Checking columns
+  if(!"school_attend" %in% colnames(df)) {
+    
+    stop(glue::glue("`feeding = TRUE` but school attendance variable (`school_attend`) is missing. 
+                        Please, check variable names."))
+    
+  }
+  
+  # Info on data on school meal calculations
+  meal_kcal <- meal_kcal*school_days/365
+  
+  message(glue::glue("The school meal contributed {meal_kcal} kcal/day for SAC."))
+  
+  
+}
+  
+# 1) Excluding breast milk contribution towards energy intakes of infants -----
 
 # Exclusive breastfeeding/lactating - Removing their contribution to HHs energy (not eating food)
 
@@ -90,7 +129,7 @@ if(excl.bf){
   
 }      
 
-  # Continued breastfeeding - Decreasing HH Energy contribution based prevalence
+# 2) Continued breastfeeding - Decreasing HH Energy contribution based prevalence ----
   
   if(comple.bf){
     
@@ -130,7 +169,7 @@ if(excl.bf){
     } 
   }
   
- # School feeding
+ # 3) School feeding - Contribution to school meals to cover SAC energy req. -----
     
     if(feeding){
       
@@ -154,8 +193,10 @@ if(excl.bf){
       }
     }
   
-  #Assume all school children of certain age got feeding
-  if(school){
+
+# 4) School - Assume all school children of certain age got feeding ----
+
+    if(school){
     
     df <- df %>% mutate(
       school_feeding = ifelse(age_y >=6 & age_y <= 13 & school_attend == 1 & !is.na(school_attend), 1 , 0), 

@@ -3,7 +3,7 @@
 
 
 
-## SUMMARY
+##  SUMMARY {.unnumbered}
 
 1. Roster information = individuals_microdata.dta
  - No info on pregnancy and/or lactating women 
@@ -17,50 +17,24 @@
  - Info on food consumed provided in Kg/L (not specified)
 
 **Assumption**:
-From the Kenya Continuous Household Survey Programme (KCHSP) 2021. Interviewers' Manual (KNBS, 2021). In litre : 401, 405, 406, 402, 404, 403, 407, 409, 411, 507, 905, 907, 1202, 1204, 1205, 1601, 1602, 1603, 1701, 1702, 1703, 1504, 1505.
+From the Kenya Continuous Household Survey Programme (KCHSP) 2021. Interviewers' Manual (KNBS, 2021). In litres (L) : 401, 405, 406, 402, 404, 403, 407, 409, 411, 507, 905, 907, 1202, 1204, 1205, 1601, 1602, 1603, 1701, 1702, 1703, 1504, 1505.
+
+
+## Energy requirement calculations {#sec-data-kchsp22}
 
 
 ### Breastfeeding 
 
 #### Note: exclusive breastfeeding up to 5 months was 60% (DHS, 2022). 
 
-U.S. Department of Agriculture and U.S. Department of
-Health and Human Services. Dietary Guidelines for Americans, 2020-2025.
-9th Edition. December 2020. Available at DietaryGuidelines.gov. 
 
-Based on data on WHO/FAO - Here's the energy requirement calculated for each month from 1-6 for the women.
+
 ```{r}
+
 # Breastfeeding exclusive breastfeeding up to 5months was 60% (DHS, 2022). 
-roster_test %>% 
-  # Mother and son/daughter (household head)
-  mutate(lac_women = ifelse(hhid_id %in% c(1, 2) & sex == 2, case_when(
-    clhhid %in% roster_test$clhhid[roster_test$age_y <  2 & roster_test$b03 ==3] ~ 500,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 1 & roster_test$b03 ==3] ~ 2569/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 2 & roster_test$b03 ==3] ~ 2686/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 3 & roster_test$b03 ==3] ~ 2760/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 4 & roster_test$b03 ==3] ~ 2867/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 5 & roster_test$b03 ==3] ~ 2925/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 6 & roster_test$b03 ==3] ~ 3138/4.18), NA)) %>% 
-  # Mother and son/daughter (daughter of household head)
-     mutate(lac_women = ifelse(hhid_id %in% c(3) & sex == 2, case_when(
-       clhhid %in% roster_test$clhhid[roster_test$age_y <  2 & roster_test$b03 ==4] ~ 500,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 1 & roster_test$b03 ==4] ~ 2569/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 2 & roster_test$b03 ==4] ~ 2686/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 3 & roster_test$b03 ==4] ~ 2760/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 4 & roster_test$b03 ==4] ~ 2867/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 5 & roster_test$b03 ==4] ~ 2925/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 6 & roster_test$b03 ==4] ~ 3138/4.18), lac_women)) %>%
-  # Mother and son/daughter (sister of household head)
-   mutate(lac_women = ifelse(hhid_id %in% c(5) & sex == 2, case_when(
-     clhhid %in% roster_test$clhhid[roster_test$age_y <  2 & roster_test$b03 ==7] ~ 500,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 1 & roster_test$b03 ==7] ~ 2569/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 2 & roster_test$b03 ==7] ~ 2686/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 3 & roster_test$b03 ==7] ~ 2760/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 4 & roster_test$b03 ==7] ~ 2867/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 5 & roster_test$b03 ==7] ~ 2925/4.18,
-    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 6 & roster_test$b03 ==7] ~ 3138/4.18), lac_women)) #%>% 
- # filter(!is.na(lac_women)) %>% 
-#  select(hhid_id, b03, sex, lac_women ) %>% summary()
+
+
+
 ```
 
 
@@ -82,14 +56,6 @@ Continued breastfeeding
 12–15 months 85.1%  
 16–19 months 66.2%  
 20–23 months 42.7% 
-
-
-## Note on lactating women & Energy calculation function
-
-There are three options:
-1. There is a variable that identify which women is lactating (e.g. info is provided in the survey).
-2. The lactating women is assumed based on having a lactating child base on mother and child relation to the head of the household (e.g. info is provided to relationship , eg. mother/spouse and son/daughter, daughter and grandchild).
-3. The lactating women is assumed based on one child at the household is < 24months of age.
 
 ## School Meals
 

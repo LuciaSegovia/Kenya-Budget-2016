@@ -7,4 +7,14 @@ If one SAC represent Z% of the AFE (eg. 0.08 of 1AFE), then the school meals con
 
 1. If we calculate the intake of each household member, would we arrive to the same value?
 
+Based on data on WHO/FAO - Here's the energy requirement calculated for each month from 1-6 for the women.
 
+ # Mother and son/daughter (household head)
+  mutate(lac_women = ifelse(hhid_id %in% c(1, 2) & sex == 2, case_when(
+    clhhid %in% roster_test$clhhid[roster_test$age_y <  2 & roster_test$b03 ==3] ~ 500,
+    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 1 & roster_test$b03 ==3] ~ 2569/4.18,
+    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 2 & roster_test$b03 ==3] ~ 2686/4.18,
+    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 3 & roster_test$b03 ==3] ~ 2760/4.18,
+    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 4 & roster_test$b03 ==3] ~ 2867/4.18,
+    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 5 & roster_test$b03 ==3] ~ 2925/4.18,
+    clhhid %in% roster_test$clhhid[roster_test$age_y == 0 & roster_test$age_m == 6 & roster_test$b03 ==3] ~ 3138/4.18), NA))

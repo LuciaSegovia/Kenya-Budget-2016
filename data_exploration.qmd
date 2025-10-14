@@ -637,7 +637,7 @@ component_title <- gsub("retinol activity equivalents", "RAE", unique(data$Indic
 #nutrient_sace %>%
   survey_design %>% group_by(county_name) %>% 
  # group_by(!!sym(var)) %>% 
-  summarise(across(starts_with("ame"),
+  summarise(across(starts_with("sac"),
                           ~srvyr::survey_quantile(.x, c(0.25, 0.5, 0.75)))) %>% 
   select(-ends_with("se")) %>%
    left_join(., ken_admin2, by = c("county_name")) %>% 
@@ -646,7 +646,7 @@ component_title <- gsub("retinol activity equivalents", "RAE", unique(data$Indic
 #  filter(!is.na(CNTNAME3) & Indicator %in% component & Element == "Average") %>% 
   st_as_sf() %>% 
   tm_shape() +
-  tm_polygons(fill = "ame_cons_energy_kcal_q50",
+  tm_polygons(fill = "sac_cons_energy_kcal_q50",
                fill.scale = tm_scale_intervals(values = palette1),
               fill_alpha = 0.5
               #  fill.legend =  tm_legend(title = component_title)

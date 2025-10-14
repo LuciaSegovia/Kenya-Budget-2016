@@ -1,6 +1,5 @@
 
-
-#' Calculate Energy Requirements Based on Age, Sex, Weight and Physical Activity Levels (PAL)
+#' Calculate Energy Requirements Based on Age, Sex, Weight, condition and Physical Activity Levels (PAL)
 #'
 #'
 #' Version 1.0.0 

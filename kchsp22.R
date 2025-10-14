@@ -5,6 +5,7 @@ library(tidyr)
 
 #Function
 source("functions/Energy_requirements.R")
+source("functions/Energy_adjustments.R")
 
 # Loading data ----
 
@@ -104,9 +105,7 @@ nct <- readxl::read_excel(here::here("data", "Kenya_NCT_JRC.xlsx")) %>%
   janitor::clean_names()
 names(nct)
 
-## Outliers
-
-hist(nutrient_summary$cons_edible/nutrient_summary$adq_scale)
+## Outliers -----
 
 outliers <- df %>% left_join(., nct, by =c("fooditem_code" = "code")) %>% 
   #filter(is.na(edible_portion)) 
@@ -130,6 +129,7 @@ nutrient_summary <- df %>% left_join(., nct, by =c("fooditem_code" = "code")) %>
                                                                   "cons_gift",                                                    
                                                                   "cons_total" ))
 
+hist(nutrient_summary$cons_edible/nutrient_summary$adq_scale)
 
 ## Roster: Calculating Energy requirements for HHs members ----
 
@@ -171,25 +171,25 @@ unique(roster$age_y)
 roster_test <-  Enerc_requirement(roster, pal = 1.6, weight.m = 65, weight.f = 55,
                                   lac = TRUE, preg = TRUE, prev.preg = 0.05)
 
-roster_test <-  Enerc_requirement(roster, pal = 1.6, weight.m = 65, weight.f = 55,
-                                  lac = FALSE, preg = TRUE, prev.preg = 0.05)
+#roster_test <-  Enerc_requirement(roster, pal = 1.6, weight.m = 65, weight.f = 55,
+ #                                 lac = FALSE, preg = TRUE, prev.preg = 0.05)
 
 # Checking lactating
 # Mothers who are HH head or spouse
-roster_test2 %>% filter(is.na(lac_women) & age <45 & b03 %in% c("1", "2")) %>% 
+roster_test %>% filter(is.na(lac_women) & age <45 & b03 %in% c("1", "2")) %>% 
   select(hhid_id, clhhid, age, b03, lac_women) 
 
 # Checking pregnancy
-roster_test3 %>% select(starts_with("preg"), age_y, sex, enerc_kcal) %>% 
+roster_test %>% select(starts_with("preg"), age_y, sex, enerc_kcal) %>% 
   filter(age_y == 30) %>% distinct()
 roster_test3 %>% filter(preg_0.05 == 1) %>% count()
 
-id_check <- roster_test1 %>% filter(!is.na(lac_women) & age >45 & b03 %in% c("1", "2")) %>% 
-  distinct(clhhid) %>% pull()
+#id_check <- roster_test1 %>% filter(!is.na(lac_women) & age >45 & b03 %in% c("1", "2")) %>% 
+ # distinct(clhhid) %>% pull()
 
-roster_test1 %>% filter(clhhid %in% id_check)
+roster_test %>% filter(clhhid %in% id_check)
 
-roster_test1 %>% names()
+roster_test %>% names()
 
 ## 2) Energy adjustment for HH food allocation ----- 
 roster_test2 <-  Enerc_adjustment(roster_test, 
@@ -276,10 +276,66 @@ survey_design %>%
 
 ### Calculating for School age children -----
 
+# First selecting only HHs with SAC ====
 hh_sac <- roster_test$clhhid[roster_test$age_y>=6 & roster_test$age_y<= 12]
 
-roster_test2 %>% filter(clhhid %in% hh_sac) %>% 
-  ggplot(aes(enerc_kcal, age_y, colour = as.character(sex))) + geom_point()
+# roster_test2 %>% filter(clhhid %in% hh_sac) %>% 
+#   ggplot(aes(enerc_kcal, age_y, colour = as.character(sex))) + geom_point()
+
+
+# Calculating individualisation
+
+sac_only <- roster_test2 %>% 
+  mutate(
+    afe = enerc_kcal/Energy_afe,
+    afe_school = enerc_kcal_school/Energy_afe, 
+    afe_feed = enerc_kcal_feeding/Energy_afe) %>% 
+  group_by(clhhid) %>% 
+  summarise(clhhid, county, resid, weight_hh, weight_pop, uniqueid, sex, school_grade, age,school_attend, exp_feed,
+    indv = round(afe/sum(afe), 2)) %>% filter(age >=6 & age<=12)
+
+nutrient_sac <- sac_only %>% left_join(., nutrient_summary) %>% 
+  mutate( across(starts_with("cons_"), ~.*as.numeric(indv), 
+                 .names = "sac_{.col}")) # %>%  
+#ggplot(aes( as.factor(school_attend), sac_cons_energy_kcal, colour = as.factor(school_attend))) +geom_boxplot()
+#ggplot(aes( as.factor(school_attend), sac_cons_energy_kcal, colour = as.factor(age))) +geom_boxplot()
+
+
+#meal c(629, 5.9, 688, 1.4, 0.9, 12.0, 0.6, 0.9, 533, 1.9, 31.2, 5.8, 5.2, 2.3 )
+
+names(nutrient_sac)
+
+meal_nut<- c(629, 5.9)
+meal_nut_names <-   c("sac_cons_energy_kcal", "sac_cons_zinc_mg" )
+meal_dummy <- as_tibble(rbind( meal_nut))
+names(meal_dummy) <- meal_nut_names
+
+nutrient_sac_dummy <- nutrient_sac %>% ungroup() %>% 
+  mutate(sac_cons_energy_kcal_school = 
+        ifelse(school_attend == 1 & !is.na(school_attend),
+               sac_cons_energy_kcal+(meal_dummy$sac_cons_energy_kcal*192/365), sac_cons_energy_kcal),
+        sac_cons_zinc_mg_school = 
+      ifelse(school_attend == 1 & !is.na(school_attend), sac_cons_zinc_mg +(meal_dummy$sac_cons_zinc_mg*192/365), sac_cons_zinc_mg)
+                )
+
+nutrient_sac_dummy %>% filter(county_name == "Turkana" & 
+      !is.na(sac_cons_energy_kcal) & is.na(sac_cons_zinc_mg_school)) %>% View() 
+
+### Survey design ----
+library(survey) # survey design
+library(srvyr) # survey design
+# PSU = ea_id
+#ihs4_summary$region <- as.factor(ihs4_summary$region)
+survey_design <- nutrient_sac %>% ungroup() %>% 
+  as_survey_design(strata = c(county, resid), weights = weight_pop)
+
+
+library(survey) # survey design
+library(srvyr) # survey design
+# PSU = ea_id
+#ihs4_summary$region <- as.factor(ihs4_summary$region)
+survey_design_dummy <- nutrient_sac_dummy %>% ungroup() %>% 
+  as_survey_design(strata = c(county, resid), weights = weight_pop)
 
 ## Selecting the reference
 years <- 10
@@ -318,6 +374,8 @@ nutrient_sace <- nutrient_summary %>% left_join(., roster_sac) %>%
   mutate(
     across(starts_with("cons_"), ~./as.numeric(sace), .names = "sace_{.col}"),
     across(starts_with("cons_"), ~./as.numeric(adq_scale), .names = "ame_{.col}"))
+
+
 
 
 # Survey design ----

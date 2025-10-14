@@ -1,17 +1,85 @@
 
 # Methods
 
+For this example, we are using the . Described in previous section. 
+
+```{r set-up, message=FALSE, warning=FALSE}
+
+# Loading libraries
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+
+#Function
+source("functions/Energy_requirements.R")
+source("functions/Energy_adjustments.R")
+
+# HH members info (Roster)
+roster <- haven::read_dta(here::here("data", "2022", "individuals_microdata.dta"))
+str(roster)
+
+# Variable renaming
+roster <- roster %>% 
+  rename(sex = "b04", age_y = "b05_years", relation_head = "b03", 
+         age_m = "b05_months", dob_year = "b06_yrs", 
+         school_attend = "c03",  school_attend_last = "c05", school_grade = "c06", exp_feed = "c09o") 
+
+# Unique ids
+# Household unique ID
+roster$clhhid <- paste0(roster$clid,"_",  roster$hhid)
+# HH member unique ID
+roster$uniqueid <- paste0(roster$clid,"_",  roster$hhid, "_", roster$hhid_id)
+
+```
 
 
 ## Calulating Energy requirements of household members
 
 The information needed for calculating the Energy requirement of each household member are: age, sex, weight, and pregnancy/lactation. Often weight, pregnancy and lactation are not available. These variables are then calculated and/or assumed based on information from other sources, e.g. Demographic and Health Surveys (DHS).
 
-Here, it is calculated using a function .
+Here, it is calculated using a function `Energy_requirements()`. 
+
+### Note on the calculation of increase energy requirement due to lactation in the function
+
+There are three options for identifying lactating women:
+
+1. There is a variable that identify which women is lactating (e.g. info is provided in the survey).
+2. The lactating women is assumed based on having a lactating child base on mother and child relation to the head of the household (e.g. info is provided to relationship , eg. mother/spouse and son/daughter, daughter and grandchild).
+3. The lactating women is assumed based on cohabitation of a women (14-45yo) and a lactating infant (<24months).
+
+The energy requirements for lactating women were extracted from @DietaryGuidelinesAmericans2020. 
+
+
+::: {.callout-important}
+## Note on assumptions
+
+Summary of the main function assumptions/ decisions:
+
+- **pal**: Physical Activity Levels (PAL) assumed to be 1.6.
+- **weight.m**: Weight for adult men (>18yo) assumed 65Kg.
+- **weight.f**: Weight for adult women (>18yo) assumed 55Kg.
+- **lac**: (TRUE) increase in energy due to lactation will be calculated. Here it will based on the potential relationship of the women (14-45yo) with infants (< 24months).
+- **preg**: (TRUE) increase in energy due to pregnancy will be calculated. Based on pregnancy prevalence.
+- **prev.preg**: The prevalence of pregancy was 5.5% for the country.
+
+More information on the rationale for the assumption used in the function are presented in previous section @sec-data-kchsp22.
+
+:::
+
+
+```{r}
+
+# Calculating the Energy requirements for each HH member
+roster_test <-  Enerc_requirement(roster, pal = 1.6, weight.m = 65, weight.f = 55,
+                                  lac = TRUE, preg = TRUE, prev.preg = 0.05)
+
+```
+
+
 
 ## Adjusting the Energy requirments to food allocation
 
-Some adjustment are needed when using the energy requirements to allocate the food consumed at the household level, for example, if an infant is exclusive breastfed, no food will be given to them, hence we will adjust their energy needs to zero. In other words, there will be no food allocated to the infant. Similarly, there are other cases when the food allocation (based on the energy) would need to be modifed, for instance, if children receive food at the school (Borlizzi et al, 2017).
+Some adjustment are needed when using the energy requirements to allocate the food consumed at the household level, for example, if an infant is exclusive breastfed, no food will be given to them, hence we will adjust their energy needs to zero. In other words, there will be no food allocated to the infant. Similarly, there are other cases when the food allocation (based on the energy) would need to be modifed, for instance, if children receive food at the school @borlizziNationalFoodSecurity2017.
 
 ::: {.callout-important}
 ## Note on assumptions
@@ -21,18 +89,21 @@ Summary of the main function assumptions/ decisions:
 - **Exclusive breasfeeding**: Assumed that only infants of <= 3months where exclusive breasfed.
 - **Complementary breasfeeding (6-11months)**: Assumed for all infants up to 11months.
 - **Complementary breasfeeding (12-24months)**: Breasfed adjusted for 60% prevalence.
-- **School age children**: Assumed to be in primary school age 6-13years old.
-- **School feeding**: By school attendance, assumed for all attending school and age 6-13years old. If `NA` assumed not receiving school feeding.
+- **School age children**: Assumed to be in primary school age 6-13 years old.
+- **School feeding**: By school attendance, assumed for all SAC (age 6-13 years old) attending shool. If `NA` assumed not receiving school feeding.
 - **School feeding**: Only if attending this year (not considering last year).
-
 
 :::
 
-This is also calculated using a function. Like in the other function, some of this modules can be used or not based on the information available and/or the country context. 
-
+This is also calculated using a function `Energy_adjustments()`. Like in the other function, some of this modules can be used or not based on the information available and/or the country context. 
 
 
 ## Calculating your household allocation based on your population of interest
+
+Once, we have calculated the Energy requirments and adjuted the energy intakes for other factors (e.g. school feeding), we can pick out population of interest. Here, we used the Adult Female Equivalent (AFE) which has been described previously @tangModelingFoodFortification2021. 
+
+
+
 
 
 
