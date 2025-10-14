@@ -62,8 +62,6 @@ Summary of the main function assumptions/ decisions:
 - **preg**: (TRUE) increase in energy due to pregnancy will be calculated. Based on pregnancy prevalence.
 - **prev.preg**: The prevalence of pregancy was 5.5% for the country.
 
-More information on the rationale for the assumption used in the function are presented in previous section @sec-data-kchsp22.
-
 :::
 
 
@@ -76,27 +74,42 @@ roster_test <-  Enerc_requirement(roster, pal = 1.6, weight.m = 65, weight.f = 5
 ```
 
 
-
 ## Adjusting the Energy requirments to food allocation
 
 Some adjustment are needed when using the energy requirements to allocate the food consumed at the household level, for example, if an infant is exclusive breastfed, no food will be given to them, hence we will adjust their energy needs to zero. In other words, there will be no food allocated to the infant. Similarly, there are other cases when the food allocation (based on the energy) would need to be modifed, for instance, if children receive food at the school @borlizziNationalFoodSecurity2017.
+
+This is also calculated using a function `Energy_adjustments()`. Like in the other function, some of this modules can be used or not based on the information available and/or the country context. 
+
 
 ::: {.callout-important}
 ## Note on assumptions
 
 Summary of the main function assumptions/ decisions:
 
-- **Exclusive breasfeeding**: Assumed that only infants of <= 3months where exclusive breasfed.
-- **Complementary breasfeeding (6-11months)**: Assumed for all infants up to 11months.
-- **Complementary breasfeeding (12-24months)**: Breasfed adjusted for 60% prevalence.
-- **School age children**: Assumed to be in primary school age 6-13 years old.
-- **School feeding**: By school attendance, assumed for all SAC (age 6-13 years old) attending shool. If `NA` assumed not receiving school feeding.
-- **School feeding**: Only if attending this year (not considering last year).
+- **excl.bf**: (TRUE) energy adjustment for infants with exclusive breasfeeding.
+- **excl.age**: Exclusive breasfeeding was assumed only for infants of <= 3months. 
+- **comple.bf**: (TRUE) energy adjustment for infants with complementary breasfeeding (6-11months).
+- **prev.complebf**: In infant (12-24months), complementary breasfeeding was adjusted based on 60% prevalence.
+- **school**: (TRUE) energy adjustment for all the School Age Children (SAC, 6-13 yo) that attended shool based on receiving one meal each school day. Only if attending this year (not considering last year attendance).
+- **feeding**: (TRUE) energy adjustment for all SAC (age 6-13 years old) attending shool and speding money on school feeding based on receiving one meal each school day. If `NA` assumed not receiving school meal. Only if attending this year (not considering last year).
+- **meal_kcal**: The energy contribution for one meal at school was 629 kcal.
+- **school_days**: The number of school days were 195 days per year.
 
 :::
 
-This is also calculated using a function `Energy_adjustments()`. Like in the other function, some of this modules can be used or not based on the information available and/or the country context. 
+```{r}
 
+## Energy adjustment for HH food allocation 
+roster_adjusted <-  Enerc_adjustment(roster_test, 
+                                  excl.bf = TRUE, excl.age = 3, 
+                                  comple.bf = TRUE,  prev.complebf = 0.60,
+                                  school = TRUE, feeding = TRUE, meal_kcal = 629,
+                                  at_home = FALSE)
+
+```
+
+
+More information on the rationale for all the assumption used in the function are presented in previous section @sec-data-kchsp22.
 
 ## Calculating your household allocation based on your population of interest
 
