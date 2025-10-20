@@ -1,0 +1,102 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Reproducible documentation",
+    "section": "",
+    "text": "Preface",
+    "crumbs": [
+      "Preface"
+    ]
+  },
+  {
+    "objectID": "index.html#about-this-book",
+    "href": "index.html#about-this-book",
+    "title": "Reproducible documentation",
+    "section": "About this book",
+    "text": "About this book",
+    "crumbs": [
+      "Preface"
+    ]
+  },
+  {
+    "objectID": "index.html#acknowledgements",
+    "href": "index.html#acknowledgements",
+    "title": "Reproducible documentation",
+    "section": "Acknowledgements",
+    "text": "Acknowledgements",
+    "crumbs": [
+      "Preface"
+    ]
+  },
+  {
+    "objectID": "intro.html",
+    "href": "intro.html",
+    "title": "Introduction",
+    "section": "",
+    "text": "Aim of the study\n\n\nObjectives",
+    "crumbs": [
+      "Introduction"
+    ]
+  },
+  {
+    "objectID": "methods.html",
+    "href": "methods.html",
+    "title": "1  Methods",
+    "section": "",
+    "text": "1.1 Calulating Energy requirements of household members\nFor this example, we are using the Kenya Continuous Household Survey Programme (KCHSP) 2022. Described in previous section ?sec-data-kchsp22.\nThe information needed for calculating the Energy requirement of each household member are: age, sex, weight, and pregnancy/lactation. Often weight, pregnancy and lactation are not available. These variables are then calculated and/or assumed based on information from other sources, e.g. Demographic and Health Surveys (DHS).\nHere, it is calculated using a function Energy_requirements().",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Methods</span>"
+    ]
+  },
+  {
+    "objectID": "methods.html#calulating-energy-requirements-of-household-members",
+    "href": "methods.html#calulating-energy-requirements-of-household-members",
+    "title": "1  Methods",
+    "section": "",
+    "text": "1.1.1 Note on the calculation of increase energy requirement due to lactation in the function\nThere are three options for identifying lactating women:\n\nThere is a variable that identify which women is lactating (e.g. info is provided in the survey).\nThe lactating women is assumed based on having a lactating child base on mother and child relation to the head of the household (e.g. info is provided to relationship , eg. mother/spouse and son/daughter, daughter and grandchild).\nThe lactating women is assumed based on cohabitation of a women (14-45yo) and a lactating infant (&lt;24months).\n\nThe energy requirements for lactating women were extracted from Agriculture and U. S. Department ofHealth and Human Services (2020).\n\n\n\n\n\n\nNote on assumptions\n\n\n\nSummary of the main function assumptions/ decisions:\n\npal: Physical Activity Levels (PAL) assumed to be 1.6.\nweight.m: Weight for adult men (&gt;18yo) assumed 65Kg.\nweight.f: Weight for adult women (&gt;18yo) assumed 55Kg.\nlac: (TRUE) increase in energy due to lactation will be calculated. Here it will based on the potential relationship of the women (14-45yo) with infants (&lt; 24months).\npreg: (TRUE) increase in energy due to pregnancy will be calculated. Based on pregnancy prevalence.\nprev.preg: The prevalence of pregancy was 5.5% for the country.\n\n\n\n\n\nCode\n# Calculating the Energy requirements for each HH member\nroster_test &lt;-  Enerc_requirement(roster, pal = 1.6, weight.m = 65, weight.f = 55,\n                                  lac = TRUE, preg = TRUE, prev.preg = 0.05)",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Methods</span>"
+    ]
+  },
+  {
+    "objectID": "methods.html#adjusting-the-energy-requirments-to-food-allocation",
+    "href": "methods.html#adjusting-the-energy-requirments-to-food-allocation",
+    "title": "1  Methods",
+    "section": "1.2 Adjusting the Energy requirments to food allocation",
+    "text": "1.2 Adjusting the Energy requirments to food allocation\nSome adjustment are needed when using the energy requirements to allocate the food consumed at the household level, for example, if an infant is exclusive breastfed, no food will be given to them, hence we will adjust their energy needs to zero. In other words, there will be no food allocated to the infant. Similarly, there are other cases when the food allocation (based on the energy) would need to be modifed, for instance, if children receive food at the school Borlizzi, Delgrossi, and Cafiero (2017).\nThis is also calculated using a function Energy_adjustments(). Like in the other function, some of this modules can be used or not based on the information available and/or the country context.\n\n\n\n\n\n\nNote on assumptions\n\n\n\nSummary of the main function assumptions/ decisions:\n\nexcl.bf: (TRUE) energy adjustment for infants with exclusive breastfeeding.\nexcl.age: Exclusive breastfeeding was assumed only for infants of &lt;= 3months.\ncomple.bf: (TRUE) energy adjustment for infants with complementary breastfeeding (6-11months).\nprev.complebf: In infant (12-24months), complementary breastfeeding was adjusted based on 60% prevalence.\nschool: (TRUE) energy adjustment for all the School Age Children (SAC, 6-13 yo) that attended school based on receiving one meal each school day. Only if attending this year (not considering last year attendance).\nfeeding: (TRUE) energy adjustment for all SAC (age 6-13 years old) attending school and spending money on school feeding based on receiving one meal each school day. If NA assumed not receiving school meal. Only if attending this year (not considering last year).\nmeal_kcal: The energy contribution for one meal at school was 629 kcal.\nschool_days: The number of school days were 195 days per year.\n\n\n\n\n\nCode\n## Energy adjustment for HH food allocation \nroster_adjusted &lt;-  Enerc_adjustment(roster_test, \n                                  excl.bf = TRUE, excl.age = 3, \n                                  comple.bf = TRUE,  prev.complebf = 0.60,\n                                  school = TRUE, feeding = TRUE, \n                                  meal_kcal = 629, school_days = 139,\n                                  at_home = FALSE)\n\n\nMore information on the rationale for all the assumption used in the function are presented in previous section ?sec-data-kchsp22.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Methods</span>"
+    ]
+  },
+  {
+    "objectID": "methods.html#calculating-your-household-food-allocation-based-on-your-population-of-interest",
+    "href": "methods.html#calculating-your-household-food-allocation-based-on-your-population-of-interest",
+    "title": "1  Methods",
+    "section": "1.3 Calculating your household food allocation based on your population of interest",
+    "text": "1.3 Calculating your household food allocation based on your population of interest\nOnce, we have calculated the Energy requirements and adjusted the energy intakes for other factors (e.g. school feeding), we can select the population of interest. Here, we used the Adult Female Equivalent (AFE) which has been described previously Tang et al. (2021).\n\n\nCode\n# Selecting the reference (non-pregnant, non-lactating women (14-49yo))\nyears &lt;- 25 # Requirement are the same for the age range.\nS &lt;- 2 # Sex\n# Obtaining Energy requirement of ref.\n(Energy_afe &lt;- unique(roster_test$enerc_kcal[roster_test$age == years & roster_test$sex == S & is.na(roster_test$lac_women) & # non-lactating\nroster_test$preg_0.05 == 0])) # non-pregnant\n\n\n[1] 2082.544\n\n\nCode\n### Calculating impact on AFE ----\nroster_afe &lt;- roster_adjusted %&gt;% \n  mutate(\n    afe = enerc_kcal/Energy_afe,\n    afe_school = enerc_kcal_school/Energy_afe, \n    afe_feed = enerc_kcal_feeding/Energy_afe) \n\n\nTwo type of analyses can be performed, depending on the objectives of your study: a) general population status, b) target population (individualisation).\n\n1.3.1 General population apparent food intakes\nFor general population, the AFEs of each household member are summed to obtain the household AFE.\n\n\nCode\n# Calculating HH AFE\nroster_afe_hh &lt;- roster_afe %&gt;% \n  group_by(clhhid) %&gt;% \n# Getting the AFE, per AFE (+SM), per AFE (+ all SAC receiving SM)\n  summarise(clhhid, county, resid, weight_hh, \n            afe =sum(afe),\n            afe_school = sum(afe_school),\n            afe_feed = sum(afe_feed)) %&gt;% \n  distinct()\n\n\n\n\n1.3.2 Target population (individualisation)\nWe calculated the proportional contribution to the total household AFE and used that for allocating the food. Here, we are selecting only school age children (SAC) (6-13yo), for this analysis, but other population of interest could be selected as well.\n\n\nCode\n# Calculating individualisation from AFE\nsac_only &lt;-  roster_afe %&gt;% \n  group_by(clhhid) %&gt;% \n  summarise(clhhid, county, resid, weight_hh, weight_pop, uniqueid, sex, school_grade, age,school_attend, exp_feed,\n    indv = round(afe_school/sum(afe_school), 2)) %&gt;% # calculating the proportional food allocation\n  filter(age &gt;=6 & age&lt;=13) # filtering SAC\n\n\nAfter choosing the allocation/individualisation method, information on food consumption can be matched to food composition data to evaluate apparent nutrient intakes.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Methods</span>"
+    ]
+  },
+  {
+    "objectID": "methods.html#apparent-nutrient-intakes",
+    "href": "methods.html#apparent-nutrient-intakes",
+    "title": "1  Methods",
+    "section": "1.4 Apparent nutrient intakes",
+    "text": "1.4 Apparent nutrient intakes\nInformation on the cleaning and other steps to obtain the apparent nutrient intakes per household are reported in the ?sec-food-consumption.\nHere, food composition data was adapted from the Kenya Nutrient Conversion Table developed by Ramos (2022), which can be accessed here.\n\n1.4.1 General population using AFE\nApparent nutrient intakes at household level are transformed into AFE which would allow comparison of apparent nutrient intakes and calculation of risk of inadequacies.\n\n\nCode\n# Getting the nutrient apparent intakes per AFE\nnutrient_afe &lt;- nutrient_summary %&gt;%  # HH app. nutrient intakes\n  left_join(., roster_afe_hh %&gt;% pivot_longer(cols =starts_with(\"afe\"), \n   names_to = \"hh_alloc\")) %&gt;%  # Getting per AFE, per AFE (+SM), per AFE (+ all SAC receiving SM)\n  mutate(\n    across(starts_with(\"cons_\"), ~./as.numeric(value), .names = \"hh_alloc_{.col}\")) # Calculating for all nut. available\n\n\n\n\n1.4.2 Target population (individualisation of SAC)\n\n\nCode\n# Getting the nutrient apparent intakes per School Age Children\nnutrient_sac &lt;- sac_only %&gt;% \n  left_join(., nutrient_summary) %&gt;% \n  mutate( across(starts_with(\"cons_\"), ~.*as.numeric(indv), \n                 .names = \"sac_{.col}\")) \n\n\nFor our target population, we are also adding the energy and nutrient contribution from the school meals.\n\n\nCode\n# Adding energy and nutrient contribution (per day) of SM\nnutrient_sac &lt;- nutrient_sac %&gt;% ungroup() %&gt;% \n  mutate(sac_cons_energy_kcal_school = \n        ifelse(school_attend == 1 & !is.na(school_attend),\n               sac_cons_energy_kcal+(school_meal_df[1,]$ENERCkcal*school.days/365), sac_cons_energy_kcal),\n        sac_cons_vitamin_b12_mcg_school = \n      ifelse(school_attend == 1 & !is.na(school_attend), sac_cons_vitamin_b12_mcg +(school_meal_df[1,]$VITB12mcg*school.days/365), sac_cons_vitamin_b12_mcg)\n                )\n\n\n\n\n\n\nAgriculture and U. S. Department ofHealth and Human Services, U. S. Department of. 2020. Dietary Guidelines for Americans, 2020-2025. 9th ed. DietaryGuidelines.gov.\n\n\nBorlizzi, Andrea, Mauro Eduardo Delgrossi, and Carlo Cafiero. 2017. “National Food Security Assessment Through the Analysis of Food Consumption Data from Household Consumption and Expenditure Surveys: The Case of Brazil’s Pesquisa de Orçamento Familiares 2008/09.” Food Policy, Food counts. Measuring food consumption and expenditures in household consumption and expenditure surveys (HCES), 72 (October): 20–26. https://doi.org/10.1016/j.foodpol.2017.08.009.\n\n\nRamos, María Priscila. 2022. “Kenya Nutrition Conversion Table (Kenya_NCT) (2022).” Repositorio Institucional de Salud REPISALUD. https://doi.org/10.4321/repisalud.25905.\n\n\nTang, Kevin, Katherine P. Adams, Elaine L. Ferguson, Monica Woldt, Alexander A. Kalimbira, Blessings Likoswe, Jennifer Yourkavitch, et al. 2021. “Modeling Food Fortification Contributions to Micronutrient Requirements in Malawi Using Household Consumption and Expenditure Surveys.” Annals of the New York Academy of Sciences n/a (n/a). https://doi.org/10.1111/nyas.14697.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Methods</span>"
+    ]
+  },
+  {
+    "objectID": "references.html",
+    "href": "references.html",
+    "title": "2  References",
+    "section": "",
+    "text": "Agriculture and U. S. Department ofHealth and Human Services, U. S.\nDepartment of. 2020. Dietary Guidelines for\nAmericans, 2020-2025. 9th ed. DietaryGuidelines.gov.\n\n\nBorlizzi, Andrea, Mauro Eduardo Delgrossi, and Carlo Cafiero. 2017.\n“National Food Security Assessment Through the Analysis of Food\nConsumption Data from Household Consumption and\nExpenditure Surveys: The Case of\nBrazil’s Pesquisa de\nOrçamento Familiares\n2008/09.” Food Policy, Food counts.\nMeasuring food consumption and expenditures in household\nconsumption and expenditure surveys (HCES), 72 (October):\n20–26. https://doi.org/10.1016/j.foodpol.2017.08.009.\n\n\nRamos, María Priscila. 2022. “Kenya Nutrition Conversion Table\n(Kenya_NCT) (2022).” Repositorio Institucional de\nSalud REPISALUD. https://doi.org/10.4321/repisalud.25905.\n\n\nTang, Kevin, Katherine P. Adams, Elaine L. Ferguson, Monica Woldt,\nAlexander A. Kalimbira, Blessings Likoswe, Jennifer Yourkavitch, et al.\n2021. “Modeling Food Fortification Contributions to Micronutrient\nRequirements in Malawi Using Household\nConsumption and Expenditure Surveys.”\nAnnals of the New York Academy of Sciences n/a (n/a). https://doi.org/10.1111/nyas.14697.",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>References</span>"
+    ]
+  }
+]

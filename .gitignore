@@ -5,7 +5,7 @@
 
 
 # Folder w/ data
-data/ 
+data/
 
 # Folder with html files for maps viz
 ke-*/
@@ -13,3 +13,5 @@ ke-*/
 # Viz outputs
 *.html
 
+
+/.quarto/
