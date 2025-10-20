@@ -17,7 +17,8 @@ str(data)
 roster <- haven::read_dta(here::here("data", "2022", "individuals_microdata.dta"))
 str(roster)
 
-
+# Assumptions
+school.days <- 195 # Based on GCNF (2019). 
 
 ## Food consumption at HHs (7days) ----
 df <- data %>% 
@@ -131,6 +132,8 @@ nutrient_summary <- df %>% left_join(., nct, by =c("fooditem_code" = "code")) %>
 
 hist(nutrient_summary$cons_edible/nutrient_summary$adq_scale)
 
+saveRDS(nutrient_summary, here::here("inter-outputs", "nutrient-apparent-intakes.RDS"))
+
 ## Roster: Calculating Energy requirements for HHs members ----
 
 str(roster)
@@ -195,7 +198,8 @@ roster_test %>% names()
 roster_test2 <-  Enerc_adjustment(roster_test, 
                                   excl.bf = TRUE, excl.age = 3, 
                                   comple.bf = TRUE, 
-                                  school = TRUE, feeding = TRUE, meal_kcal = 629,
+                                  school = TRUE, feeding = TRUE, 
+                                  meal_kcal = 629,
                                   at_home = FALSE)
 
 # Testing excl. bf
@@ -292,7 +296,7 @@ sac_only <- roster_test2 %>%
     afe_feed = enerc_kcal_feeding/Energy_afe) %>% 
   group_by(clhhid) %>% 
   summarise(clhhid, county, resid, weight_hh, weight_pop, uniqueid, sex, school_grade, age,school_attend, exp_feed,
-    indv = round(afe/sum(afe), 2)) %>% filter(age >=6 & age<=12)
+    indv = round(afe_school/sum(afe_school), 2)) %>% filter(age >=6 & age<=13)
 
 nutrient_sac <- sac_only %>% left_join(., nutrient_summary) %>% 
   mutate( across(starts_with("cons_"), ~.*as.numeric(indv), 
@@ -300,8 +304,6 @@ nutrient_sac <- sac_only %>% left_join(., nutrient_summary) %>%
 #ggplot(aes( as.factor(school_attend), sac_cons_energy_kcal, colour = as.factor(school_attend))) +geom_boxplot()
 #ggplot(aes( as.factor(school_attend), sac_cons_energy_kcal, colour = as.factor(age))) +geom_boxplot()
 
-
-#meal c(629, 5.9, 688, 1.4, 0.9, 12.0, 0.6, 0.9, 533, 1.9, 31.2, 5.8, 5.2, 2.3 )
 
 names(nutrient_sac)
 
@@ -313,9 +315,9 @@ names(meal_dummy) <- meal_nut_names
 nutrient_sac_dummy <- nutrient_sac %>% ungroup() %>% 
   mutate(sac_cons_energy_kcal_school = 
         ifelse(school_attend == 1 & !is.na(school_attend),
-               sac_cons_energy_kcal+(meal_dummy$sac_cons_energy_kcal*192/365), sac_cons_energy_kcal),
+               sac_cons_energy_kcal+(meal_dummy$sac_cons_energy_kcal*school.days/365), sac_cons_energy_kcal),
         sac_cons_zinc_mg_school = 
-      ifelse(school_attend == 1 & !is.na(school_attend), sac_cons_zinc_mg +(meal_dummy$sac_cons_zinc_mg*192/365), sac_cons_zinc_mg)
+      ifelse(school_attend == 1 & !is.na(school_attend), sac_cons_zinc_mg +(meal_dummy$sac_cons_zinc_mg*school.days/365), sac_cons_zinc_mg)
                 )
 
 nutrient_sac_dummy %>% filter(county_name == "Turkana" & 

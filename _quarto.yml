@@ -1,0 +1,48 @@
+project:
+  type: book
+  output-dir: docs
+
+book:
+  title: "Reproducible documentation"
+  subtitle: "Framework to include School Feeding Programme contribution to inadequacy estimates when using Household Consumption and Expenditure Surveys"
+  author: 
+    - "Lucia Segovia De La Revilla"
+  date: "20/10/2025"
+  repo-url: https://github.com/LuciaSegovia/Kenya-Budget-2016/
+  repo-actions: [edit, issue]
+  downloads: [pdf, epub]
+  chapters:
+    - index.qmd
+    - intro.qmd
+    - methods.qmd
+    - references.qmd
+  sidebar:
+    tools:
+      - icon: cloud-arrow-down
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+    number-sections: true
+    number-offset: 1
+    number-depth: 4
+    toc-title: "On this page"
+    code-fold: show 
+ #   embed-resources: true
+    fig-width: 8
+    fig-height: 6
+knitr:
+  opts_chunk:
+    message: false
+    warning: false
+   
+editor: source
+
+# Do not evaluate code chunks
+# eval: false
+# callout-icon: false
+
+
+

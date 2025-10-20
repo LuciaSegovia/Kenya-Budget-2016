@@ -48,7 +48,7 @@ Enerc_adjustment <- function(df,
                              excl.bf = TRUE, excl.age = 6, 
                              comple.bf = TRUE, prev.complebf = 0.60,
                              school = TRUE, #grade = NA,
-                             feeding = TRUE, meal_kcal = 629, school_days = 139,
+                             feeding = TRUE, meal_kcal = 629, school_days = 195,
                              at_home = FALSE){
 
   

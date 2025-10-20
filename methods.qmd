@@ -1,7 +1,7 @@
 
 # Methods
 
-For this example, we are using the . Described in previous section. 
+For this example, we are using the	[Kenya Continuous Household Survey Programme (KCHSP) 2022](https://statistics.knbs.or.ke/nada/index.php/catalog/131). Described in previous section @sec-data-kchsp22.
 
 ```{r set-up, message=FALSE, warning=FALSE}
 
@@ -16,7 +16,6 @@ source("functions/Energy_adjustments.R")
 
 # HH members info (Roster)
 roster <- haven::read_dta(here::here("data", "2022", "individuals_microdata.dta"))
-str(roster)
 
 # Variable renaming
 roster <- roster %>% 
@@ -29,6 +28,16 @@ roster <- roster %>%
 roster$clhhid <- paste0(roster$clid,"_",  roster$hhid)
 # HH member unique ID
 roster$uniqueid <- paste0(roster$clid,"_",  roster$hhid, "_", roster$hhid_id)
+
+# Assumptions
+school.days <- 195 # Based on GCNF (2019). 
+
+# School Meals (WFP)
+school_meal_df <- read.csv(here::here("data", "school_meals_data.csv"))
+
+# Nutrient apparent intakes at HH
+nutrient_summary <- readRDS(here::here("inter-outputs", "nutrient-apparent-intakes.RDS"))
+
 
 ```
 
@@ -86,12 +95,12 @@ This is also calculated using a function `Energy_adjustments()`. Like in the oth
 
 Summary of the main function assumptions/ decisions:
 
-- **excl.bf**: (TRUE) energy adjustment for infants with exclusive breasfeeding.
-- **excl.age**: Exclusive breasfeeding was assumed only for infants of <= 3months. 
-- **comple.bf**: (TRUE) energy adjustment for infants with complementary breasfeeding (6-11months).
-- **prev.complebf**: In infant (12-24months), complementary breasfeeding was adjusted based on 60% prevalence.
-- **school**: (TRUE) energy adjustment for all the School Age Children (SAC, 6-13 yo) that attended shool based on receiving one meal each school day. Only if attending this year (not considering last year attendance).
-- **feeding**: (TRUE) energy adjustment for all SAC (age 6-13 years old) attending shool and speding money on school feeding based on receiving one meal each school day. If `NA` assumed not receiving school meal. Only if attending this year (not considering last year).
+- **excl.bf**: (TRUE) energy adjustment for infants with exclusive breastfeeding.
+- **excl.age**: Exclusive breastfeeding was assumed only for infants of <= 3months. 
+- **comple.bf**: (TRUE) energy adjustment for infants with complementary breastfeeding (6-11months).
+- **prev.complebf**: In infant (12-24months), complementary breastfeeding was adjusted based on 60% prevalence.
+- **school**: (TRUE) energy adjustment for all the School Age Children (SAC, 6-13 yo) that attended school based on receiving one meal each school day. Only if attending this year (not considering last year attendance).
+- **feeding**: (TRUE) energy adjustment for all SAC (age 6-13 years old) attending school and spending money on school feeding based on receiving one meal each school day. If `NA` assumed not receiving school meal. Only if attending this year (not considering last year).
 - **meal_kcal**: The energy contribution for one meal at school was 629 kcal.
 - **school_days**: The number of school days were 195 days per year.
 
@@ -103,7 +112,8 @@ Summary of the main function assumptions/ decisions:
 roster_adjusted <-  Enerc_adjustment(roster_test, 
                                   excl.bf = TRUE, excl.age = 3, 
                                   comple.bf = TRUE,  prev.complebf = 0.60,
-                                  school = TRUE, feeding = TRUE, meal_kcal = 629,
+                                  school = TRUE, feeding = TRUE, 
+                                  meal_kcal = 629, school_days = 139,
                                   at_home = FALSE)
 
 ```
@@ -111,12 +121,115 @@ roster_adjusted <-  Enerc_adjustment(roster_test,
 
 More information on the rationale for all the assumption used in the function are presented in previous section @sec-data-kchsp22.
 
-## Calculating your household allocation based on your population of interest
+## Calculating your household food allocation based on your population of interest
 
-Once, we have calculated the Energy requirments and adjuted the energy intakes for other factors (e.g. school feeding), we can pick out population of interest. Here, we used the Adult Female Equivalent (AFE) which has been described previously @tangModelingFoodFortification2021. 
-
-
+Once, we have calculated the Energy requirements and adjusted the energy intakes for other factors (e.g. school feeding), we can select the population of interest. Here, we used the Adult Female Equivalent (AFE) which has been described previously @tangModelingFoodFortification2021. 
 
 
+```{r}
 
+# Selecting the reference (non-pregnant, non-lactating women (14-49yo))
+years <- 25 # Requirement are the same for the age range.
+S <- 2 # Sex
+# Obtaining Energy requirement of ref.
+(Energy_afe <- unique(roster_test$enerc_kcal[roster_test$age == years & roster_test$sex == S & is.na(roster_test$lac_women) & # non-lactating
+roster_test$preg_0.05 == 0])) # non-pregnant
+
+### Calculating impact on AFE ----
+roster_afe <- roster_adjusted %>% 
+  mutate(
+    afe = enerc_kcal/Energy_afe,
+    afe_school = enerc_kcal_school/Energy_afe, 
+    afe_feed = enerc_kcal_feeding/Energy_afe) 
+
+```
+
+Two type of analyses can be performed, depending on the objectives of your study: a) general population status, b) target population (individualisation).
+
+### General population apparent food intakes
+
+For general population, the AFEs of each household member are summed to obtain the household AFE. 
+
+
+```{r}
+
+# Calculating HH AFE
+roster_afe_hh <- roster_afe %>% 
+  group_by(clhhid) %>% 
+# Getting the AFE, per AFE (+SM), per AFE (+ all SAC receiving SM)
+  summarise(clhhid, county, resid, weight_hh, 
+            afe =sum(afe),
+            afe_school = sum(afe_school),
+            afe_feed = sum(afe_feed)) %>% 
+  distinct()
+
+```
+
+
+### Target population (individualisation)
+
+We calculated the proportional contribution to the total household AFE and used that for allocating the food. Here, we are selecting only school age children (SAC) (6-13yo), for this analysis, but other population of interest could be selected as well. 
+
+
+```{r}
+
+# Calculating individualisation from AFE
+sac_only <-  roster_afe %>% 
+  group_by(clhhid) %>% 
+  summarise(clhhid, county, resid, weight_hh, weight_pop, uniqueid, sex, school_grade, age,school_attend, exp_feed,
+    indv = round(afe_school/sum(afe_school), 2)) %>% # calculating the proportional food allocation
+  filter(age >=6 & age<=13) # filtering SAC
+
+```
+
+After choosing the allocation/individualisation method, information on food consumption can be matched to food composition data to evaluate apparent nutrient intakes. 
+
+## Apparent nutrient intakes
+
+Information on the cleaning and other steps to obtain the apparent nutrient intakes per household are reported in the @sec-food-consumption. 
+
+Here, food composition data was adapted from the Kenya Nutrient Conversion Table developed by @Custodio2024-vt, which can be accessed [here](https://hdl.handle.net/20.500.12105/25905). 
+
+### General population using AFE
+
+Apparent nutrient intakes at household level are transformed into AFE which would allow comparison of apparent nutrient intakes and calculation of risk of inadequacies. 
+
+```{r}
+
+# Getting the nutrient apparent intakes per AFE
+nutrient_afe <- nutrient_summary %>%  # HH app. nutrient intakes
+  left_join(., roster_afe_hh %>% pivot_longer(cols =starts_with("afe"), 
+   names_to = "hh_alloc")) %>%  # Getting per AFE, per AFE (+SM), per AFE (+ all SAC receiving SM)
+  mutate(
+    across(starts_with("cons_"), ~./as.numeric(value), .names = "hh_alloc_{.col}")) # Calculating for all nut. available
+
+```
+
+
+### Target population (individualisation of SAC)
+
+```{r}
+
+# Getting the nutrient apparent intakes per School Age Children
+nutrient_sac <- sac_only %>% 
+  left_join(., nutrient_summary) %>% 
+  mutate( across(starts_with("cons_"), ~.*as.numeric(indv), 
+                 .names = "sac_{.col}")) 
+
+```
+
+For our target population, we are also adding the energy and nutrient contribution from the school meals.
+
+```{r}
+
+# Adding energy and nutrient contribution (per day) of SM
+nutrient_sac <- nutrient_sac %>% ungroup() %>% 
+  mutate(sac_cons_energy_kcal_school = 
+        ifelse(school_attend == 1 & !is.na(school_attend),
+               sac_cons_energy_kcal+(school_meal_df[1,]$ENERCkcal*school.days/365), sac_cons_energy_kcal),
+        sac_cons_vitamin_b12_mcg_school = 
+      ifelse(school_attend == 1 & !is.na(school_attend), sac_cons_vitamin_b12_mcg +(school_meal_df[1,]$VITB12mcg*school.days/365), sac_cons_vitamin_b12_mcg)
+                )
+
+```
 
