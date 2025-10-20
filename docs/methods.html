@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>1&nbsp; Methods – Reproducible documentation</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./references.html" rel="next">
+<link href="./intro.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-364982630eef5352dd1537128a8ed5cb.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./methods.html"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Methods</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Reproducible documentation</a> 
+        <div class="sidebar-tools-main tools-wide">
+    <a href="" title="" class="quarto-navigation-tool px-1" aria-label=""><i class="bi bi-cloud-arrow-down"></i></a>
+    <a href="https://github.com/LuciaSegovia/Kenya-Budget-2016/" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+    <div class="dropdown">
+      <a href="" title="Download" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label="Download"><i class="bi bi-download"></i></a>
+      <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-0">
+          <li>
+            <a class="dropdown-item sidebar-tools-main-item" href="./Reproducible-documentation.pdf">
+              <i class="bi bi-file-pdf pe-1"></i>
+            Download PDF
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item sidebar-tools-main-item" href="./Reproducible-documentation.epub">
+              <i class="bi bi-journal pe-1"></i>
+            Download ePub
+            </a>
+          </li>
+      </ul>
+    </div>
+</div>
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introduction</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./methods.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Methods</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">References</span></span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#calulating-energy-requirements-of-household-members" id="toc-calulating-energy-requirements-of-household-members" class="nav-link active" data-scroll-target="#calulating-energy-requirements-of-household-members"><span class="header-section-number">1.1</span> Calulating Energy requirements of household members</a>
+  <ul class="collapse">
+  <li><a href="#note-on-the-calculation-of-increase-energy-requirement-due-to-lactation-in-the-function" id="toc-note-on-the-calculation-of-increase-energy-requirement-due-to-lactation-in-the-function" class="nav-link" data-scroll-target="#note-on-the-calculation-of-increase-energy-requirement-due-to-lactation-in-the-function"><span class="header-section-number">1.1.1</span> Note on the calculation of increase energy requirement due to lactation in the function</a></li>
+  </ul></li>
+  <li><a href="#adjusting-the-energy-requirments-to-food-allocation" id="toc-adjusting-the-energy-requirments-to-food-allocation" class="nav-link" data-scroll-target="#adjusting-the-energy-requirments-to-food-allocation"><span class="header-section-number">1.2</span> Adjusting the Energy requirments to food allocation</a></li>
+  <li><a href="#calculating-your-household-food-allocation-based-on-your-population-of-interest" id="toc-calculating-your-household-food-allocation-based-on-your-population-of-interest" class="nav-link" data-scroll-target="#calculating-your-household-food-allocation-based-on-your-population-of-interest"><span class="header-section-number">1.3</span> Calculating your household food allocation based on your population of interest</a>
+  <ul class="collapse">
+  <li><a href="#general-population-apparent-food-intakes" id="toc-general-population-apparent-food-intakes" class="nav-link" data-scroll-target="#general-population-apparent-food-intakes"><span class="header-section-number">1.3.1</span> General population apparent food intakes</a></li>
+  <li><a href="#target-population-individualisation" id="toc-target-population-individualisation" class="nav-link" data-scroll-target="#target-population-individualisation"><span class="header-section-number">1.3.2</span> Target population (individualisation)</a></li>
+  </ul></li>
+  <li><a href="#apparent-nutrient-intakes" id="toc-apparent-nutrient-intakes" class="nav-link" data-scroll-target="#apparent-nutrient-intakes"><span class="header-section-number">1.4</span> Apparent nutrient intakes</a>
+  <ul class="collapse">
+  <li><a href="#general-population-using-afe" id="toc-general-population-using-afe" class="nav-link" data-scroll-target="#general-population-using-afe"><span class="header-section-number">1.4.1</span> General population using AFE</a></li>
+  <li><a href="#target-population-individualisation-of-sac" id="toc-target-population-individualisation-of-sac" class="nav-link" data-scroll-target="#target-population-individualisation-of-sac"><span class="header-section-number">1.4.2</span> Target population (individualisation of SAC)</a></li>
+  </ul></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/LuciaSegovia/Kenya-Budget-2016/edit/main/methods.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/LuciaSegovia/Kenya-Budget-2016/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Methods</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>For this example, we are using the <a href="https://statistics.knbs.or.ke/nada/index.php/catalog/131">Kenya Continuous Household Survey Programme (KCHSP) 2022</a>. Described in previous section <span class="quarto-unresolved-ref">?sec-data-kchsp22</span>.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Loading libraries</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">#Function</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"functions/Energy_requirements.R"</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="st">"functions/Energy_adjustments.R"</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># HH members info (Roster)</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>roster <span class="ot">&lt;-</span> haven<span class="sc">::</span><span class="fu">read_dta</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>, <span class="st">"2022"</span>, <span class="st">"individuals_microdata.dta"</span>))</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Variable renaming</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>roster <span class="ot">&lt;-</span> roster <span class="sc">%&gt;%</span> </span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">sex =</span> <span class="st">"b04"</span>, <span class="at">age_y =</span> <span class="st">"b05_years"</span>, <span class="at">relation_head =</span> <span class="st">"b03"</span>, </span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">age_m =</span> <span class="st">"b05_months"</span>, <span class="at">dob_year =</span> <span class="st">"b06_yrs"</span>, </span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>         <span class="at">school_attend =</span> <span class="st">"c03"</span>,  <span class="at">school_attend_last =</span> <span class="st">"c05"</span>, <span class="at">school_grade =</span> <span class="st">"c06"</span>, <span class="at">exp_feed =</span> <span class="st">"c09o"</span>) </span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Unique ids</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Household unique ID</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>roster<span class="sc">$</span>clhhid <span class="ot">&lt;-</span> <span class="fu">paste0</span>(roster<span class="sc">$</span>clid,<span class="st">"_"</span>,  roster<span class="sc">$</span>hhid)</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="co"># HH member unique ID</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>roster<span class="sc">$</span>uniqueid <span class="ot">&lt;-</span> <span class="fu">paste0</span>(roster<span class="sc">$</span>clid,<span class="st">"_"</span>,  roster<span class="sc">$</span>hhid, <span class="st">"_"</span>, roster<span class="sc">$</span>hhid_id)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Assumptions</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>school.days <span class="ot">&lt;-</span> <span class="dv">195</span> <span class="co"># Based on GCNF (2019). </span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="co"># School Meals (WFP)</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>school_meal_df <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data"</span>, <span class="st">"school_meals_data.csv"</span>))</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Nutrient apparent intakes at HH</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>nutrient_summary <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"inter-outputs"</span>, <span class="st">"nutrient-apparent-intakes.RDS"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<section id="calulating-energy-requirements-of-household-members" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="calulating-energy-requirements-of-household-members"><span class="header-section-number">1.1</span> Calulating Energy requirements of household members</h2>
+<p>The information needed for calculating the Energy requirement of each household member are: age, sex, weight, and pregnancy/lactation. Often weight, pregnancy and lactation are not available. These variables are then calculated and/or assumed based on information from other sources, e.g.&nbsp;Demographic and Health Surveys (DHS).</p>
+<p>Here, it is calculated using a function <code>Energy_requirements()</code>.</p>
+<section id="note-on-the-calculation-of-increase-energy-requirement-due-to-lactation-in-the-function" class="level3" data-number="1.1.1">
+<h3 data-number="1.1.1" class="anchored" data-anchor-id="note-on-the-calculation-of-increase-energy-requirement-due-to-lactation-in-the-function"><span class="header-section-number">1.1.1</span> Note on the calculation of increase energy requirement due to lactation in the function</h3>
+<p>There are three options for identifying lactating women:</p>
+<ol type="1">
+<li>There is a variable that identify which women is lactating (e.g.&nbsp;info is provided in the survey).</li>
+<li>The lactating women is assumed based on having a lactating child base on mother and child relation to the head of the household (e.g.&nbsp;info is provided to relationship , eg. mother/spouse and son/daughter, daughter and grandchild).</li>
+<li>The lactating women is assumed based on cohabitation of a women (14-45yo) and a lactating infant (&lt;24months).</li>
+</ol>
+<p>The energy requirements for lactating women were extracted from <span class="citation" data-cites="DietaryGuidelinesAmericans2020">Agriculture and U. S. Department ofHealth and Human Services (<a href="references.html#ref-DietaryGuidelinesAmericans2020" role="doc-biblioref">2020</a>)</span>.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note on assumptions
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Summary of the main function assumptions/ decisions:</p>
+<ul>
+<li><strong>pal</strong>: Physical Activity Levels (PAL) assumed to be 1.6.</li>
+<li><strong>weight.m</strong>: Weight for adult men (&gt;18yo) assumed 65Kg.</li>
+<li><strong>weight.f</strong>: Weight for adult women (&gt;18yo) assumed 55Kg.</li>
+<li><strong>lac</strong>: (TRUE) increase in energy due to lactation will be calculated. Here it will based on the potential relationship of the women (14-45yo) with infants (&lt; 24months).</li>
+<li><strong>preg</strong>: (TRUE) increase in energy due to pregnancy will be calculated. Based on pregnancy prevalence.</li>
+<li><strong>prev.preg</strong>: The prevalence of pregancy was 5.5% for the country.</li>
+</ul>
+</div>
+</div>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculating the Energy requirements for each HH member</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>roster_test <span class="ot">&lt;-</span>  <span class="fu">Enerc_requirement</span>(roster, <span class="at">pal =</span> <span class="fl">1.6</span>, <span class="at">weight.m =</span> <span class="dv">65</span>, <span class="at">weight.f =</span> <span class="dv">55</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">lac =</span> <span class="cn">TRUE</span>, <span class="at">preg =</span> <span class="cn">TRUE</span>, <span class="at">prev.preg =</span> <span class="fl">0.05</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+</section>
+<section id="adjusting-the-energy-requirments-to-food-allocation" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="adjusting-the-energy-requirments-to-food-allocation"><span class="header-section-number">1.2</span> Adjusting the Energy requirments to food allocation</h2>
+<p>Some adjustment are needed when using the energy requirements to allocate the food consumed at the household level, for example, if an infant is exclusive breastfed, no food will be given to them, hence we will adjust their energy needs to zero. In other words, there will be no food allocated to the infant. Similarly, there are other cases when the food allocation (based on the energy) would need to be modifed, for instance, if children receive food at the school <span class="citation" data-cites="borlizziNationalFoodSecurity2017">Borlizzi, Delgrossi, and Cafiero (<a href="references.html#ref-borlizziNationalFoodSecurity2017" role="doc-biblioref">2017</a>)</span>.</p>
+<p>This is also calculated using a function <code>Energy_adjustments()</code>. Like in the other function, some of this modules can be used or not based on the information available and/or the country context.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note on assumptions
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Summary of the main function assumptions/ decisions:</p>
+<ul>
+<li><strong>excl.bf</strong>: (TRUE) energy adjustment for infants with exclusive breastfeeding.</li>
+<li><strong>excl.age</strong>: Exclusive breastfeeding was assumed only for infants of &lt;= 3months.</li>
+<li><strong>comple.bf</strong>: (TRUE) energy adjustment for infants with complementary breastfeeding (6-11months).</li>
+<li><strong>prev.complebf</strong>: In infant (12-24months), complementary breastfeeding was adjusted based on 60% prevalence.</li>
+<li><strong>school</strong>: (TRUE) energy adjustment for all the School Age Children (SAC, 6-13 yo) that attended school based on receiving one meal each school day. Only if attending this year (not considering last year attendance).</li>
+<li><strong>feeding</strong>: (TRUE) energy adjustment for all SAC (age 6-13 years old) attending school and spending money on school feeding based on receiving one meal each school day. If <code>NA</code> assumed not receiving school meal. Only if attending this year (not considering last year).</li>
+<li><strong>meal_kcal</strong>: The energy contribution for one meal at school was 629 kcal.</li>
+<li><strong>school_days</strong>: The number of school days were 195 days per year.</li>
+</ul>
+</div>
+</div>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Energy adjustment for HH food allocation </span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>roster_adjusted <span class="ot">&lt;-</span>  <span class="fu">Enerc_adjustment</span>(roster_test, </span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">excl.bf =</span> <span class="cn">TRUE</span>, <span class="at">excl.age =</span> <span class="dv">3</span>, </span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">comple.bf =</span> <span class="cn">TRUE</span>,  <span class="at">prev.complebf =</span> <span class="fl">0.60</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">school =</span> <span class="cn">TRUE</span>, <span class="at">feeding =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">meal_kcal =</span> <span class="dv">629</span>, <span class="at">school_days =</span> <span class="dv">139</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">at_home =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>More information on the rationale for all the assumption used in the function are presented in previous section <span class="quarto-unresolved-ref">?sec-data-kchsp22</span>.</p>
+</section>
+<section id="calculating-your-household-food-allocation-based-on-your-population-of-interest" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="calculating-your-household-food-allocation-based-on-your-population-of-interest"><span class="header-section-number">1.3</span> Calculating your household food allocation based on your population of interest</h2>
+<p>Once, we have calculated the Energy requirements and adjusted the energy intakes for other factors (e.g.&nbsp;school feeding), we can select the population of interest. Here, we used the Adult Female Equivalent (AFE) which has been described previously <span class="citation" data-cites="tangModelingFoodFortification2021">Tang et al. (<a href="references.html#ref-tangModelingFoodFortification2021" role="doc-biblioref">2021</a>)</span>.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Selecting the reference (non-pregnant, non-lactating women (14-49yo))</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>years <span class="ot">&lt;-</span> <span class="dv">25</span> <span class="co"># Requirement are the same for the age range.</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>S <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="co"># Sex</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Obtaining Energy requirement of ref.</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>(Energy_afe <span class="ot">&lt;-</span> <span class="fu">unique</span>(roster_test<span class="sc">$</span>enerc_kcal[roster_test<span class="sc">$</span>age <span class="sc">==</span> years <span class="sc">&amp;</span> roster_test<span class="sc">$</span>sex <span class="sc">==</span> S <span class="sc">&amp;</span> <span class="fu">is.na</span>(roster_test<span class="sc">$</span>lac_women) <span class="sc">&amp;</span> <span class="co"># non-lactating</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>roster_test<span class="sc">$</span>preg_0<span class="fl">.05</span> <span class="sc">==</span> <span class="dv">0</span>])) <span class="co"># non-pregnant</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 2082.544</code></pre>
+</div>
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="do">### Calculating impact on AFE ----</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>roster_afe <span class="ot">&lt;-</span> roster_adjusted <span class="sc">%&gt;%</span> </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">afe =</span> enerc_kcal<span class="sc">/</span>Energy_afe,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">afe_school =</span> enerc_kcal_school<span class="sc">/</span>Energy_afe, </span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">afe_feed =</span> enerc_kcal_feeding<span class="sc">/</span>Energy_afe) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Two type of analyses can be performed, depending on the objectives of your study: a) general population status, b) target population (individualisation).</p>
+<section id="general-population-apparent-food-intakes" class="level3" data-number="1.3.1">
+<h3 data-number="1.3.1" class="anchored" data-anchor-id="general-population-apparent-food-intakes"><span class="header-section-number">1.3.1</span> General population apparent food intakes</h3>
+<p>For general population, the AFEs of each household member are summed to obtain the household AFE.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculating HH AFE</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>roster_afe_hh <span class="ot">&lt;-</span> roster_afe <span class="sc">%&gt;%</span> </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(clhhid) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Getting the AFE, per AFE (+SM), per AFE (+ all SAC receiving SM)</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(clhhid, county, resid, weight_hh, </span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">afe =</span><span class="fu">sum</span>(afe),</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">afe_school =</span> <span class="fu">sum</span>(afe_school),</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">afe_feed =</span> <span class="fu">sum</span>(afe_feed)) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="target-population-individualisation" class="level3" data-number="1.3.2">
+<h3 data-number="1.3.2" class="anchored" data-anchor-id="target-population-individualisation"><span class="header-section-number">1.3.2</span> Target population (individualisation)</h3>
+<p>We calculated the proportional contribution to the total household AFE and used that for allocating the food. Here, we are selecting only school age children (SAC) (6-13yo), for this analysis, but other population of interest could be selected as well.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculating individualisation from AFE</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>sac_only <span class="ot">&lt;-</span>  roster_afe <span class="sc">%&gt;%</span> </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(clhhid) <span class="sc">%&gt;%</span> </span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(clhhid, county, resid, weight_hh, weight_pop, uniqueid, sex, school_grade, age,school_attend, exp_feed,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">indv =</span> <span class="fu">round</span>(afe_school<span class="sc">/</span><span class="fu">sum</span>(afe_school), <span class="dv">2</span>)) <span class="sc">%&gt;%</span> <span class="co"># calculating the proportional food allocation</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(age <span class="sc">&gt;=</span><span class="dv">6</span> <span class="sc">&amp;</span> age<span class="sc">&lt;=</span><span class="dv">13</span>) <span class="co"># filtering SAC</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>After choosing the allocation/individualisation method, information on food consumption can be matched to food composition data to evaluate apparent nutrient intakes.</p>
+</section>
+</section>
+<section id="apparent-nutrient-intakes" class="level2" data-number="1.4">
+<h2 data-number="1.4" class="anchored" data-anchor-id="apparent-nutrient-intakes"><span class="header-section-number">1.4</span> Apparent nutrient intakes</h2>
+<p>Information on the cleaning and other steps to obtain the apparent nutrient intakes per household are reported in the <span class="quarto-unresolved-ref">?sec-food-consumption</span>.</p>
+<p>Here, food composition data was adapted from the Kenya Nutrient Conversion Table developed by <span class="citation" data-cites="Custodio2024-vt">Ramos (<a href="references.html#ref-Custodio2024-vt" role="doc-biblioref">2022</a>)</span>, which can be accessed <a href="https://hdl.handle.net/20.500.12105/25905">here</a>.</p>
+<section id="general-population-using-afe" class="level3" data-number="1.4.1">
+<h3 data-number="1.4.1" class="anchored" data-anchor-id="general-population-using-afe"><span class="header-section-number">1.4.1</span> General population using AFE</h3>
+<p>Apparent nutrient intakes at household level are transformed into AFE which would allow comparison of apparent nutrient intakes and calculation of risk of inadequacies.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Getting the nutrient apparent intakes per AFE</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>nutrient_afe <span class="ot">&lt;-</span> nutrient_summary <span class="sc">%&gt;%</span>  <span class="co"># HH app. nutrient intakes</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(., roster_afe_hh <span class="sc">%&gt;%</span> <span class="fu">pivot_longer</span>(<span class="at">cols =</span><span class="fu">starts_with</span>(<span class="st">"afe"</span>), </span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>   <span class="at">names_to =</span> <span class="st">"hh_alloc"</span>)) <span class="sc">%&gt;%</span>  <span class="co"># Getting per AFE, per AFE (+SM), per AFE (+ all SAC receiving SM)</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">across</span>(<span class="fu">starts_with</span>(<span class="st">"cons_"</span>), <span class="sc">~</span>.<span class="sc">/</span><span class="fu">as.numeric</span>(value), <span class="at">.names =</span> <span class="st">"hh_alloc_{.col}"</span>)) <span class="co"># Calculating for all nut. available</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="target-population-individualisation-of-sac" class="level3" data-number="1.4.2">
+<h3 data-number="1.4.2" class="anchored" data-anchor-id="target-population-individualisation-of-sac"><span class="header-section-number">1.4.2</span> Target population (individualisation of SAC)</h3>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Getting the nutrient apparent intakes per School Age Children</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>nutrient_sac <span class="ot">&lt;-</span> sac_only <span class="sc">%&gt;%</span> </span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(., nutrient_summary) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>( <span class="fu">across</span>(<span class="fu">starts_with</span>(<span class="st">"cons_"</span>), <span class="sc">~</span>.<span class="sc">*</span><span class="fu">as.numeric</span>(indv), </span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">.names =</span> <span class="st">"sac_{.col}"</span>)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>For our target population, we are also adding the energy and nutrient contribution from the school meals.</p>
+<div class="cell">
+<details open="" class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Adding energy and nutrient contribution (per day) of SM</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>nutrient_sac <span class="ot">&lt;-</span> nutrient_sac <span class="sc">%&gt;%</span> <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sac_cons_energy_kcal_school =</span> </span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>        <span class="fu">ifelse</span>(school_attend <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(school_attend),</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>               sac_cons_energy_kcal<span class="sc">+</span>(school_meal_df[<span class="dv">1</span>,]<span class="sc">$</span>ENERCkcal<span class="sc">*</span>school.days<span class="sc">/</span><span class="dv">365</span>), sac_cons_energy_kcal),</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">sac_cons_vitamin_b12_mcg_school =</span> </span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ifelse</span>(school_attend <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(school_attend), sac_cons_vitamin_b12_mcg <span class="sc">+</span>(school_meal_df[<span class="dv">1</span>,]<span class="sc">$</span>VITB12mcg<span class="sc">*</span>school.days<span class="sc">/</span><span class="dv">365</span>), sac_cons_vitamin_b12_mcg)</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>                )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list" style="display: none">
+<div id="ref-DietaryGuidelinesAmericans2020" class="csl-entry" role="listitem">
+Agriculture and U. S. Department ofHealth and Human Services, U. S. Department of. 2020. <em>Dietary <span>Guidelines</span> for <span>Americans</span>, 2020-2025</em>. 9th ed. <a href="https://DietaryGuidelines.gov">DietaryGuidelines.gov</a>.
+</div>
+<div id="ref-borlizziNationalFoodSecurity2017" class="csl-entry" role="listitem">
+Borlizzi, Andrea, Mauro Eduardo Delgrossi, and Carlo Cafiero. 2017. <span>“National Food Security Assessment Through the Analysis of Food Consumption Data from <span>Household Consumption</span> and <span>Expenditure Surveys</span>: <span>The</span> Case of <span>Brazil</span>’s <span><em>Pesquisa</em></span><span> <em>de</em> </span><span><em>Or<span>ç</span>amento Familiares</em></span> 2008/09.”</span> <em>Food Policy</em>, Food counts. <span>Measuring</span> food consumption and expenditures in household consumption and expenditure surveys (<span>HCES</span>), 72 (October): 20–26. <a href="https://doi.org/10.1016/j.foodpol.2017.08.009">https://doi.org/10.1016/j.foodpol.2017.08.009</a>.
+</div>
+<div id="ref-Custodio2024-vt" class="csl-entry" role="listitem">
+Ramos, María Priscila. 2022. <span>“Kenya Nutrition Conversion Table (<span>Kenya_NCT</span>) (2022).”</span> Repositorio Institucional de Salud REPISALUD. <a href="https://doi.org/10.4321/repisalud.25905">https://doi.org/10.4321/repisalud.25905</a>.
+</div>
+<div id="ref-tangModelingFoodFortification2021" class="csl-entry" role="listitem">
+Tang, Kevin, Katherine P. Adams, Elaine L. Ferguson, Monica Woldt, Alexander A. Kalimbira, Blessings Likoswe, Jennifer Yourkavitch, et al. 2021. <span>“Modeling Food Fortification Contributions to Micronutrient Requirements in <span>Malawi</span> Using <span>Household Consumption</span> and <span>Expenditure Surveys</span>.”</span> <em>Annals of the New York Academy of Sciences</em> n/a (n/a). <a href="https://doi.org/10.1111/nyas.14697">https://doi.org/10.1111/nyas.14697</a>.
+</div>
+</div>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./intro.html" class="pagination-link" aria-label="Introduction">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Introduction</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./references.html" class="pagination-link" aria-label="References">
+        <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">References</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/LuciaSegovia/Kenya-Budget-2016/edit/main/methods.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/LuciaSegovia/Kenya-Budget-2016/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

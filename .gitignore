@@ -11,7 +11,7 @@ data/
 ke-*/
 
 # Viz outputs
-*.html
+
 
 
 /.quarto/
