@@ -198,8 +198,8 @@ roster_test %>% names()
 roster_test2 <-  Enerc_adjustment(roster_test, 
                                   excl.bf = TRUE, excl.age = 3, 
                                   comple.bf = TRUE, 
-                                  school = TRUE, feeding = TRUE, 
-                                  meal_kcal = 629,
+                                  school = FALSE, feeding = TRUE, 
+                                  #meal_kcal = 629,
                                   at_home = FALSE)
 
 # Testing excl. bf

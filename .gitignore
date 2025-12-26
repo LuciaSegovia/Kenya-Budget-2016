@@ -12,6 +12,7 @@ ke-*/
 
 # Viz outputs
 
-
-
 /.quarto/
+
+#Inter-outputs sensitive
+2025-12-26_portion-consumer-non-consumers_afe-g-d.csv
