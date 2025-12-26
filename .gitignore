@@ -13,3 +13,5 @@ ke-*/
 # Viz outputs
 *.html
 
+# Sensitive inter-outputs
+2025-12-26_portion-consumer-non-consumers_afe-g-d.csv
