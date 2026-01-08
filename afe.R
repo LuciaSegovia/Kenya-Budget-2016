@@ -58,8 +58,8 @@ roster_test <-  Enerc_requirement(roster, pal = 1.6, weight.m = 65, weight.f = 5
 roster_test2 <-  Enerc_adjustment(roster_test, 
                                   excl.bf = TRUE, excl.age = 3, 
                                   comple.bf = TRUE, 
-                                  school = FALSE, feeding = TRUE, 
-                                  #meal_kcal = 629,
+                                  feeding = TRUE, 
+                                  school = FALSE,  #meal_kcal = 629,
                                   at_home = FALSE)
 
 ## 3) Calculating AFE ----- 
@@ -77,3 +77,5 @@ roster_afe <- roster_test2 %>%
   summarise(clhhid, county, resid, weight_hh, 
             afe =sum(afe) ) %>% 
   distinct()
+
+sum(is.na(roster_afe$afe))

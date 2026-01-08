@@ -2,20 +2,19 @@
 library(ggplot2)
 library(dplyr)
 library(tidyr)
-
+library(openxlsx)
 
 # Loading data ----
 #Consumption data
 data <- haven::read_dta(here::here("data", "2022", "food_items_microdata.dta"))
-names(data)
-head(data)
-str(data)
+#names(data)
+#head(data)
+#str(data)
+
 ### Loading NCT (See docu)
 nct <- readxl::read_excel(here::here("data", "Kenya_NCT_JRC.xlsx")) %>% 
   janitor::clean_names()
 names(nct)
-
-
 
 ## Food consumption at HHs (7days) ----
 df <- data %>% 
@@ -58,7 +57,7 @@ table(df$clhhid, df$fooditem_code)
 
 #Checking consumption - missing values
 sum(is.na(df$cons_total))
-df %>% filter(is.na(cons_total)) %>% View()
+# df %>% filter(is.na(cons_total)) %>% View()
 
 # Adding consumption from the other columns if missing
 df <- df %>% 
@@ -130,14 +129,33 @@ portion <- df %>%
 
 ## Getting AFE
 ## First need to run the AFE script (afe.R) - Check the assumptions
+source("afe.R")
+portion <- portion %>% 
+left_join(., roster_afe, by = join_by(county, resid, clhhid)) %>% 
+  mutate(cons_afe_g_d = cons_edible/afe)
 
-portion <- portion %>% left_join(., roster_afe) %>% 
-  mutate(cons_afe_g_d = cons_edible/afe) 
-
+portion %>% filter(!is.na(cons_edible), is.na(afe)) 
 
 hist(portion$cons_afe_g_d)
 
+portion <- portion %>% filter(!is.na(cons_afe_g_d))
+
 # Saving dataset 
-#write.csv(portion, here::here("inter-outputs", 
- #                   "2025-12-26_portion-consumer-non-consumers_afe-g-d.csv"))
+write.csv(portion, here::here("inter-outputs", 
+         paste0(Sys.Date(), "_portion-consumer-non-consumers_afe-g-d.csv")))
+
+
+ 
+ wb <- createWorkbook()
+ 
+ portion %>% 
+   group_by(county_name) %>%
+   group_walk(~{
+     addWorksheet(wb, sheetName = as.character(.y$county_name))
+     writeData(wb, sheet = as.character(.y$county_name), .x)
+   })
+ 
+ saveWorkbook(wb, here::here("inter-outputs", 
+      paste0(Sys.Date(), "_county_portion-consumer-non-consumers_afe-g-d.xlsx")), overwrite = TRUE)
+ 
           

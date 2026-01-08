@@ -14,4 +14,8 @@ ke-*/
 *.html
 
 # Sensitive inter-outputs
-2025-12-26_portion-consumer-non-consumers_afe-g-d.csv
+*afe-g-d.csv
+*.xlsx
+
+# Excel temp files
+~$*.xlsx
